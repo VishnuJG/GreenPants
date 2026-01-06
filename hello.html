@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>URL Path & Params Editor</title>
+  <style>
+    :root {
+      /* Default theme (Ocean) - will be overridden by JS */
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --secondary: #38bdf8;
+      --accent: #7dd3fc;
+      --gradient-start: #0ea5e9;
+      --gradient-end: #06b6d4;
+      --success: #34d399;
+      --success-dark: #10b981;
+      --error: #f87171;
+      --error-dark: #ef4444;
+      --warning: #fbbf24;
+      --warning-dark: #f59e0b;
+      --info: #60a5fa;
+      --info-dark: #3b82f6;
+      --bg-gradient-start: #22d3ee;
+      --bg-gradient-end: #0ea5e9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 700px;
+      height: 600px;
+      padding: 0;
+      margin: 0;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      color: #1e293b;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .container {
+      padding: 12px;
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 60px;
+    }
+
+    /* Theme Selector Bar */
+    .theme-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      gap: 8px;
+    }
+
+    .theme-bar label {
+      font-size: 11px;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    #themeSelector {
+      padding: 6px 12px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--primary-dark);
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 160px;
+    }
+
+    #themeSelector:hover {
+      background: white;
+      border-color: rgba(255, 255, 255, 0.8);
+      transform: scale(1.02);
+    }
+
+    #themeSelector:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+    }
+
+    .header {
+      text-align: center;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      border-bottom: 3px solid var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      margin: 4px 0 0 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+    
+    h2 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      color: #1e293b;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    h2::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      border-radius: 2px;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .tab-selector {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.98);
+      color: var(--primary-dark);
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-selector:hover {
+      background: white;
+      border-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .tab-selector:focus {
+      outline: none;
+      background: white;
+      border-color: white;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .tab-selector option {
+      background: white;
+      color: #1e293b;
+      padding: 10px;
+      font-weight: 600;
+    }
+
+    .tab-usage-badge {
+      background: var(--primary);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 9px;
+      margin-left: 6px;
+      font-weight: 700;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    
+    .url-display {
+      background: #f8fafc;
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      font-size: 14px;
+      color: #0f172a;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-weight: 500;
+      transition: all 0.2s;
+      width: 100%;
+      resize: vertical;
+      min-height: 60px;
+      line-height: 1.8;
+      word-break: break-all;
+    }
+
+    .url-display:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+      background: white;
+    }
+
+    .url-display:hover {
+      border-color: #cbd5e1;
+      background: white;
+    }
+
+    .url-display::placeholder {
+      color: #94a3b8;
+      font-style: italic;
+    }
+    
+    .protocol-host {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+    
+    .protocol-host input {
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .protocol-host input:first-child {
+      flex: 0 0 90px;
+    }
+
+    .protocol-host input:last-child {
+      flex: 1;
+    }
+
+    .protocol-host input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+    
+    .path-segment, .param-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    /* Drag and Drop */
+    .path-segment {
+      cursor: default;
+      transition: all 0.2s;
+    }
+
+    .path-segment.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+
+    .path-segment.drag-over {
+      border-top: 3px solid var(--primary);
+      padding-top: 5px;
+    }
+    
+    .path-segment input, .param-row input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .path-segment input:focus, .param-row input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+    
+    .param-row input:first-child {
+      flex: 0.45;
+    }
+    
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .btn-remove {
+      background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+      color: white;
+      min-width: 50px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-remove:hover {
+      background: linear-gradient(135deg, var(--error) 0%, var(--error-dark) 100%);
+      box-shadow: 0 4px 8px color-mix(in srgb, var(--error) 40%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .btn-remove:active {
+      transform: translateY(0);
+    }
+
+    .btn-remove:disabled {
+      background: #e2e8f0;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .drag-handle {
+      color: #94a3b8;
+      cursor: grab;
+      padding: 4px;
+      font-size: 18px;
+      user-select: none;
+      transition: color 0.2s;
+    }
+
+    .drag-handle:hover {
+      color: var(--primary);
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+
+    .path-segment:first-child .drag-handle {
+      cursor: not-allowed;
+      opacity: 0.3;
+    }
+    
+    .btn-add {
+      background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+      color: white;
+      width: 100%;
+      margin-top: 8px;
+      box-shadow: 0 2px 4px color-mix(in srgb, var(--success) 30%, transparent);
+    }
+    
+    .btn-add:hover {
+      background: linear-gradient(135deg, var(--success-dark) 0%, color-mix(in srgb, var(--success-dark) 80%, black) 100%);
+      box-shadow: 0 4px 8px color-mix(in srgb, var(--success) 40%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .btn-add:active {
+      transform: translateY(0);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+      color: white;
+      width: 100%;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 6px color-mix(in srgb, var(--success) 40%, transparent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+    }
+    
+    .btn-primary::before {
+      content: '⏎';
+      position: absolute;
+      right: 20px;
+      font-size: 18px;
+      opacity: 0.8;
+    }
+    
+    .btn-primary:hover {
+      background: linear-gradient(135deg, var(--success-dark) 0%, color-mix(in srgb, var(--success-dark) 80%, black) 100%);
+      box-shadow: 0 6px 10px color-mix(in srgb, var(--success) 50%, transparent);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      color: white;
+      width: 100%;
+      padding: 12px;
+      font-size: 13px;
+      margin-top: 10px;
+      box-shadow: 0 2px 4px rgba(71, 85, 105, 0.3);
+    }
+    
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+      box-shadow: 0 4px 8px rgba(71, 85, 105, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary:active {
+      transform: translateY(0);
+    }
+    
+    .empty-state {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+      padding: 16px;
+      font-style: italic;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 2px dashed #e2e8f0;
+    }
+    
+    .label {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    #pathSegments, #queryParams {
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    #pathSegments::-webkit-scrollbar, #queryParams::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #pathSegments::-webkit-scrollbar-track, #queryParams::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    #pathSegments::-webkit-scrollbar-thumb, #queryParams::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    #pathSegments::-webkit-scrollbar-thumb:hover, #queryParams::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    .hash-section input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .hash-section input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    .actions-section {
+      background: rgba(255, 255, 255, 0.98);
+      padding: 8px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      gap: 6px;
+      z-index: 1000;
+      border-top: 2px solid var(--primary);
+    }
+
+    .actions-section .btn-primary,
+    .actions-section .btn-secondary,
+    .actions-section .btn-test {
+      flex: 1;
+      margin: 0;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    .history-item {
+      background: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 2px solid #e2e8f0;
+      transition: all 0.2s;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-item:hover {
+      background: #f1f5f9;
+      border-color: var(--primary);
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .history-item:hover .history-url {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .history-url {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #1e293b;
+    }
+
+    .history-badge {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .history-badge.copied {
+      background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+    }
+
+    .history-container {
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .history-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .history-container::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 10px;
+    }
+
+    .history-container::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    .history-container::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      border: 2px solid #cbd5e1;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .chip:hover {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      color: white;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px color-mix(in srgb, var(--primary) 30%, transparent);
+    }
+
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-clear {
+      background: linear-gradient(135deg, var(--error) 0%, var(--error-dark) 100%);
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      flex: 1;
+    }
+
+    .btn-clear:hover {
+      background: linear-gradient(135deg, var(--error-dark) 0%, color-mix(in srgb, var(--error-dark) 80%, black) 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px color-mix(in srgb, var(--error) 30%, transparent);
+    }
+
+    .collapsible-header {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .collapse-icon {
+      transition: transform 0.3s;
+      font-size: 12px;
+    }
+
+    .collapse-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .collapsible-content {
+      max-height: 300px;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .collapsible-content.collapsed {
+      max-height: 0;
+    }
+
+    /* URL Display in Tabs */
+    .url-section {
+      margin-bottom: 12px;
+    }
+
+    .url-section.collapsed .url-display-content {
+      display: none;
+    }
+
+    .url-display-content {
+      margin-top: 8px;
+    }
+
+    /* HTTP Method Selector */
+    .method-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .method-btn {
+      padding: 10px 16px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      color: #475569;
+      font-weight: 700;
+      font-size: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .method-btn:hover {
+      border-color: var(--primary);
+      background: #f8fafc;
+    }
+
+    .method-btn.active {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 40%, transparent);
+    }
+
+    .method-btn.get.active {
+      background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+      border-color: var(--success);
+    }
+
+    .method-btn.post.active {
+      background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
+      border-color: var(--info);
+    }
+
+    .method-btn.put.active {
+      background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
+      border-color: var(--warning);
+    }
+
+    .method-btn.delete.active {
+      background: linear-gradient(135deg, var(--error) 0%, var(--error-dark) 100%);
+      border-color: var(--error);
+    }
+
+    /* Headers and Body Rows */
+    .header-row, .body-section {
+      margin-bottom: 12px;
+    }
+
+    .header-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .header-row input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .header-row input:first-child {
+      flex: 0.4;
+    }
+
+    .header-row input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    /* Body Type Selector */
+    .body-type-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .body-type-btn {
+      padding: 6px 12px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      color: #475569;
+      font-weight: 600;
+      font-size: 11px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .body-type-btn:hover {
+      border-color: var(--primary);
+      background: #f8fafc;
+    }
+
+    .body-type-btn.active {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Body Editor */
+    .body-editor {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      resize: vertical;
+      background: white;
+      transition: all 0.2s;
+    }
+
+    .body-editor:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    /* Response Viewer */
+    .response-viewer {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      color: var(--success);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .response-viewer::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .response-viewer::-webkit-scrollbar-track {
+      background: #1e293b;
+      border-radius: 10px;
+    }
+
+    .response-viewer::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 10px;
+    }
+
+    .response-status {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .response-status.success {
+      background: var(--success);
+      color: white;
+    }
+
+    .response-status.error {
+      background: var(--error);
+      color: white;
+    }
+
+    .response-status.pending {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-test {
+      background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
+      color: white;
+      width: 100%;
+      padding: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 6px color-mix(in srgb, var(--info) 40%, transparent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-test:hover {
+      background: linear-gradient(135deg, var(--info-dark) 0%, color-mix(in srgb, var(--info-dark) 80%, black) 100%);
+      box-shadow: 0 6px 10px color-mix(in srgb, var(--info) 50%, transparent);
+      transform: translateY(-2px);
+    }
+
+    .btn-test:active {
+      transform: translateY(0);
+    }
+
+    .btn-test:disabled {
+      background: #e2e8f0;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+  </style>
+</head>
+<body>
+    <!-- Theme Selector Bar -->
+    <div class="theme-bar">
+      <label for="themeSelector">🎨 Theme:</label>
+      <select id="themeSelector"></select>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+      <select class="tab-selector" id="tabSelector">
+        <option value="url-builder">🔗 URL Builder</option>
+        <option value="request">📋 Headers & Body</option>
+        <option value="timestamps">📅 Timestamps</option>
+        <option value="advanced">🔧 Advanced</option>
+        <option value="history">📜 History</option>
+      </select>
+    </div>
+
+   <div class="container">
+    
+    <!-- URL Builder Tab (Combined Segments & Params) -->
+    <div class="tab-content active" id="url-builder-tab">
+      <div class="section url-section">
+        <div class="collapsible-header" data-url-section="url-builder">
+          <h2>🌐 Current URL</h2>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="url-display-content">
+          <textarea class="url-display" data-url-field="url-builder" placeholder="Loading..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Path Segments</h2>
+        <div class="label">Drag to reorder • Click 🗑️ to remove</div>
+        <div id="pathSegments"></div>
+        <button class="btn btn-add" id="addPath">+ Add Path Segment</button>
+      </div>
+
+      
+
+      <div class="section">
+        <h2>Query Parameters</h2>
+        <div class="label">Key-value pairs</div>
+        <div id="queryParams"></div>
+        <button class="btn btn-add" id="addParam">+ Add Parameter</button>
+      </div>
+
+      <div class="section">
+        <div class="collapsible-header" id="suggestionsHeaderPaths">
+          <h2>💡 Recent Path Segments</h2>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="suggestionsContentPaths">
+          <div class="chip-container" id="recentPaths"></div>
+          <div class="history-actions">
+            <button class="btn-clear" id="clearSuggestions">Clear Suggestions</button>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="collapsible-header" id="suggestionsHeaderParams">
+          <h2>💡 Recent Parameters</h2>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="collapsible-content" id="suggestionsContentParams">
+          <div class="chip-container" id="recentParams"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Request Tab (Combined Headers & Body) -->
+    <div class="tab-content" id="request-tab">
+      <div class="section url-section collapsed">
+        <div class="collapsible-header" data-url-section="request">
+          <h2>🌐 Current URL</h2>
+          <span class="collapse-icon collapsed">▼</span>
+        </div>
+        <div class="url-display-content">
+          <textarea class="url-display" data-url-field="request" placeholder="Loading..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <!-- HTTP Method Selector -->
+      <div class="section">
+        <h2>HTTP Method</h2>
+        <div class="method-selector">
+          <button class="method-btn get active" data-method="GET">GET</button>
+          <button class="method-btn post" data-method="POST">POST</button>
+          <button class="method-btn put" data-method="PUT">PUT</button>
+          <button class="method-btn delete" data-method="DELETE">DELETE</button>
+          <button class="method-btn" data-method="PATCH">PATCH</button>
+        </div>
+      </div>
+      <div class="section">
+        <h2>Request Headers</h2>
+        <div class="label">Add custom headers (e.g., Authorization, Content-Type)</div>
+        <div id="requestHeaders"></div>
+        <button class="btn btn-add" id="addHeader">+ Add Header</button>
+      </div>
+
+      <div class="section">
+        <h2>Request Body</h2>
+        <div class="label">Select body type and enter data</div>
+        
+        <div class="body-type-selector">
+          <button class="body-type-btn active" data-body-type="json">JSON</button>
+          <button class="body-type-btn" data-body-type="form">Form Data</button>
+          <button class="body-type-btn" data-body-type="raw">Raw Text</button>
+          <button class="body-type-btn" data-body-type="none">None</button>
+        </div>
+
+        <div id="bodyContent">
+          <textarea class="body-editor" id="bodyEditor" placeholder='{"key": "value"}'></textarea>
+        </div>
+
+        <div style="margin-top: 12px; padding: 10px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #4299e1;">
+          <div style="font-weight: 600; color: #2d3748; margin-bottom: 6px; font-size: 11px;">💡 Tip:</div>
+          <p style="margin: 0; font-size: 11px; color: #4a5568; line-height: 1.5;">
+            For JSON, ensure proper formatting. For Form Data, use key=value pairs on separate lines.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timestamps Tab -->
+    <div class="tab-content" id="timestamps-tab">
+      <div class="section url-section collapsed">
+        <div class="url-display-content">
+          <textarea class="url-display" data-url-field="timestamps" placeholder="Loading..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>⏰ Timestamp Viewer</h2>
+        <div class="label">Automatically convert timestamps on web pages</div>
+        
+        <div style="margin: 16px 0;">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="timestampEnabled" style="width: 18px; height: 18px; cursor: pointer;">
+            <span style="font-weight: 600; color: #2d3748;">Enable Timestamp Viewer</span>
+          </label>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <div class="label">Display Format</div>
+          <select id="timestampFormat" style="width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: white; cursor: pointer; transition: all 0.2s;">
+            <option value="iso8601">ISO 8601 (2025-11-27T10:30:00.000Z)</option>
+            <option value="rfc2822">RFC 2822 (Wed, 27 Nov 2025 10:30:00 GMT)</option>
+            <option value="custom">Custom (Nov 27, 2025, 10:30:00 AM)</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" id="applyTimestampSettings" style="margin-top: 16px;">Apply Settings</button>
+
+        <div style="margin-top: 20px; padding: 12px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
+          <div style="font-weight: 600; color: #2d3748; margin-bottom: 8px; font-size: 12px;">ℹ️ How it works:</div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #4a5568; line-height: 1.6;">
+            <li>Detects Unix timestamps (10 or 13 digits)</li>
+            <li>Adds readable date badges next to timestamps</li>
+            <li>Works on dynamically loaded content</li>
+            <li>Toggle on/off anytime without page reload</li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 12px; padding: 12px; background: #fffaf0; border-radius: 8px; border-left: 4px solid #ed8936;">
+          <div style="font-weight: 600; color: #c05621; margin-bottom: 4px; font-size: 11px;">⚠️ Note:</div>
+          <p style="margin: 0; font-size: 11px; color: #744210; line-height: 1.5;">
+            The timestamp viewer modifies page content. It may not work correctly on all websites, especially those with dynamic content or strict DOM protection.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Tab -->
+    <div class="tab-content" id="advanced-tab">
+      <div class="section url-section">
+        <div class="collapsible-header" data-url-section="advanced">
+          <h2>🌐 Current URL</h2>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="url-display-content">
+          <textarea class="url-display" data-url-field="advanced" placeholder="Loading..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Protocol & Host</h2>
+        <div class="label">Base URL components</div>
+        <div class="protocol-host">
+          <input type="text" id="protocol" placeholder="https:">
+          <input type="text" id="host" placeholder="example.com">
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Hash/Fragment</h2>
+        <div class="hash-section">
+          <input type="text" id="hash" placeholder="section-name (without #)">
+        </div>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div class="tab-content" id="history-tab">
+      <div class="section url-section collapsed">
+        <div class="collapsible-header" data-url-section="history">
+          <h2>🌐 Current URL</h2>
+          <span class="collapse-icon collapsed">▼</span>
+        </div>
+        <div class="url-display-content">
+          <textarea class="url-display" data-url-field="history" placeholder="Loading..." rows="2"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>URL History</h2>
+        <div class="label">Click to load • Recent first</div>
+        <div class="history-container" id="urlHistory"></div>
+        <div class="history-actions">
+          <button class="btn-clear" id="clearHistory">Clear History</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions-section">
+    <button class="btn btn-secondary" id="copyUrl">📋 Copy URL</button>
+    <button class="btn btn-test" id="sendRequest">🚀 Send Request</button>
+    <button class="btn btn-primary" id="applyUrl">🌐 Navigate</button>
+  </div>
+
+  <script type="module" src="scripts/main.js"></script>
+</body>
+</html>

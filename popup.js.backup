@@ -1,0 +1,922 @@
+// URL Path & Params Editor - Main Script
+
+let currentUrl = '';
+let urlObj = null;
+
+// Storage keys
+const STORAGE_KEYS = {
+  URL_HISTORY: 'urlHistory',
+  PATH_SEGMENTS: 'pathSegments',
+  QUERY_PARAMS: 'queryParams'
+};
+
+// Maximum items to store
+const MAX_HISTORY_ITEMS = 20;
+const MAX_SUGGESTIONS = 30;
+
+// Initialize popup when DOM is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadCurrentUrl();
+  await loadHistory();
+  await loadSuggestions();
+  setupEventListeners();
+  setupCollapsibles();
+});
+
+// Load the current tab's URL
+async function loadCurrentUrl() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url) {
+      currentUrl = tab.url;
+      urlObj = new URL(currentUrl);
+      displayUrl();
+      populateFields();
+    }
+  } catch (error) {
+    console.error('Error loading URL:', error);
+    document.getElementById('currentUrl').textContent = 'Error loading URL';
+  }
+}
+
+// Display the current URL
+function displayUrl() {
+  document.getElementById('currentUrl').textContent = currentUrl;
+}
+
+// Populate all input fields with current URL components
+function populateFields() {
+  // Protocol and Host
+  document.getElementById('protocol').value = urlObj.protocol;
+  document.getElementById('host').value = urlObj.host;
+  
+  // Path segments
+  renderPathSegments();
+  
+  // Query parameters
+  renderQueryParams();
+  
+  // Hash
+  document.getElementById('hash').value = urlObj.hash.replace('#', '');
+}
+
+// Render path segments
+function renderPathSegments() {
+  const container = document.getElementById('pathSegments');
+  container.innerHTML = '';
+  
+  const pathSegments = urlObj.pathname
+    .split('/')
+    .filter((segment, index, array) => {
+      // Keep empty string at start for leading slash, but not trailing
+      if (index === 0 && segment === '') return true;
+      return segment !== '';
+    });
+  
+  if (pathSegments.length === 0 || (pathSegments.length === 1 && pathSegments[0] === '')) {
+    pathSegments.push('');
+  }
+  
+  pathSegments.forEach((segment, index) => {
+    const div = document.createElement('div');
+    div.className = 'path-segment';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = segment;
+    input.placeholder = index === 0 ? '/' : 'segment';
+    if (index === 0) {
+      input.readOnly = true;
+      input.style.background = '#e9ecef';
+      input.style.flex = '0.15';
+      input.style.textAlign = 'center';
+      input.style.cursor = 'not-allowed';
+    }
+    input.dataset.index = index;
+    
+    // Add reorder buttons for non-root segments
+    if (index > 0) {
+      const reorderDiv = document.createElement('div');
+      reorderDiv.className = 'reorder-buttons';
+      
+      const upBtn = document.createElement('button');
+      upBtn.className = 'btn-reorder';
+      upBtn.textContent = '↑';
+      upBtn.title = 'Move up';
+      upBtn.onclick = () => movePathSegment(index, 'up');
+      // Disable up button for first moveable segment
+      if (index === 1) {
+        upBtn.disabled = true;
+      }
+      
+      const downBtn = document.createElement('button');
+      downBtn.className = 'btn-reorder';
+      downBtn.textContent = '↓';
+      downBtn.title = 'Move down';
+      downBtn.onclick = () => movePathSegment(index, 'down');
+      // Disable down button for last segment
+      if (index === pathSegments.length - 1) {
+        downBtn.disabled = true;
+      }
+      
+      reorderDiv.appendChild(upBtn);
+      reorderDiv.appendChild(downBtn);
+      div.appendChild(reorderDiv);
+    }
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-remove';
+    removeBtn.textContent = '🗑️';
+    removeBtn.onclick = () => removePathSegment(index);
+    
+    // Don't allow removing the first segment (root)
+    if (index === 0) {
+      removeBtn.disabled = true;
+      removeBtn.style.opacity = '0.5';
+      removeBtn.style.cursor = 'not-allowed';
+    }
+    
+    div.appendChild(input);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+  });
+  
+  updatePreview();
+}
+
+// Render query parameters
+function renderQueryParams() {
+  const container = document.getElementById('queryParams');
+  container.innerHTML = '';
+  
+  const params = Array.from(urlObj.searchParams.entries());
+  
+  if (params.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = 'No query parameters';
+    container.appendChild(emptyState);
+    return;
+  }
+  
+  params.forEach(([key, value], index) => {
+    const div = document.createElement('div');
+    div.className = 'param-row';
+    
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.value = key;
+    keyInput.placeholder = 'key';
+    keyInput.dataset.type = 'key';
+    keyInput.dataset.index = index;
+    
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.value = value;
+    valueInput.placeholder = 'value';
+    valueInput.dataset.type = 'value';
+    valueInput.dataset.index = index;
+    
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-remove';
+    removeBtn.textContent = '🗑️';
+    removeBtn.onclick = () => removeQueryParam(key);
+    
+    div.appendChild(keyInput);
+    div.appendChild(valueInput);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+  });
+  
+  updatePreview();
+}
+
+// Add a new path segment
+function addPathSegment() {
+  const container = document.getElementById('pathSegments');
+  const div = document.createElement('div');
+  div.className = 'path-segment';
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'new-segment';
+  input.dataset.index = container.children.length;
+  
+  // Add reorder buttons
+  const reorderDiv = document.createElement('div');
+  reorderDiv.className = 'reorder-buttons';
+  
+  const upBtn = document.createElement('button');
+  upBtn.className = 'btn-reorder';
+  upBtn.textContent = '↑';
+  upBtn.title = 'Move up';
+  upBtn.onclick = () => {
+    const allSegments = Array.from(container.children);
+    const currentIndex = allSegments.indexOf(div);
+    if (currentIndex > 1) {
+      container.insertBefore(div, allSegments[currentIndex - 1]);
+      updatePreview();
+    }
+  };
+  
+  const downBtn = document.createElement('button');
+  downBtn.className = 'btn-reorder';
+  downBtn.textContent = '↓';
+  downBtn.title = 'Move down';
+  downBtn.onclick = () => {
+    const allSegments = Array.from(container.children);
+    const currentIndex = allSegments.indexOf(div);
+    if (currentIndex < allSegments.length - 1) {
+      container.insertBefore(div, allSegments[currentIndex + 2]);
+      updatePreview();
+    }
+  };
+  
+  reorderDiv.appendChild(upBtn);
+  reorderDiv.appendChild(downBtn);
+  div.appendChild(reorderDiv);
+  
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'btn btn-remove';
+  removeBtn.textContent = '🗑️';
+  removeBtn.onclick = () => {
+    div.remove();
+    updatePreview();
+  };
+  
+  div.appendChild(input);
+  div.appendChild(removeBtn);
+  container.appendChild(div);
+  
+  input.focus();
+  updatePreview();
+}
+
+// Remove a path segment
+function removePathSegment(index) {
+  if (index === 0) return; // Can't remove root
+  
+  const container = document.getElementById('pathSegments');
+  const segments = container.querySelectorAll('.path-segment');
+  if (segments[index]) {
+    segments[index].remove();
+  }
+  
+  updatePreview();
+}
+
+// Move a path segment up or down
+function movePathSegment(index, direction) {
+  if (index === 0) return; // Can't move root
+  
+  const container = document.getElementById('pathSegments');
+  const segments = Array.from(container.querySelectorAll('.path-segment'));
+  
+  if (index < 1 || index >= segments.length) return;
+  
+  // Get the segment values
+  const values = segments.map(seg => {
+    const input = seg.querySelector('input');
+    return input.value;
+  });
+  
+  // Calculate new position
+  let newIndex = index;
+  if (direction === 'up' && index > 1) {
+    newIndex = index - 1;
+  } else if (direction === 'down' && index < segments.length - 1) {
+    newIndex = index + 1;
+  }
+  
+  // Swap values
+  if (newIndex !== index) {
+    [values[index], values[newIndex]] = [values[newIndex], values[index]];
+    
+    // Update the URL object with new path
+    const newPath = '/' + values.slice(1).filter(v => v.trim() !== '').join('/');
+    urlObj.pathname = newPath;
+    
+    // Re-render
+    renderPathSegments();
+  }
+}
+
+// Add a new query parameter
+function addQueryParam() {
+  const container = document.getElementById('queryParams');
+  
+  // Remove empty state if present
+  const emptyState = container.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.remove();
+  }
+  
+  const div = document.createElement('div');
+  div.className = 'param-row';
+  
+  const keyInput = document.createElement('input');
+  keyInput.type = 'text';
+  keyInput.placeholder = 'key';
+  keyInput.dataset.type = 'key';
+  
+  const valueInput = document.createElement('input');
+  valueInput.type = 'text';
+  valueInput.placeholder = 'value';
+  valueInput.dataset.type = 'value';
+  
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'btn btn-remove';
+  removeBtn.textContent = '🗑️';
+  removeBtn.onclick = () => {
+    div.remove();
+    // Show empty state if no params left
+    if (container.children.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.textContent = 'No query parameters';
+      container.appendChild(emptyState);
+    }
+    updatePreview();
+  };
+  
+  div.appendChild(keyInput);
+  div.appendChild(valueInput);
+  div.appendChild(removeBtn);
+  container.appendChild(div);
+  
+  keyInput.focus();
+  updatePreview();
+}
+
+// Remove a query parameter
+function removeQueryParam(key) {
+  urlObj.searchParams.delete(key);
+  renderQueryParams();
+}
+
+// Build URL from current inputs
+function buildUrl() {
+  // Get protocol and host
+  const protocol = document.getElementById('protocol').value;
+  const host = document.getElementById('host').value;
+  
+  // Get path segments
+  const pathContainer = document.getElementById('pathSegments');
+  const pathInputs = pathContainer.querySelectorAll('input');
+  let path = '';
+  
+  pathInputs.forEach((input, index) => {
+    if (index === 0) {
+      path += '/'; // Root
+    } else {
+      const segment = input.value.trim();
+      if (segment) {
+        path += segment + '/';
+      }
+    }
+  });
+  
+  // Remove trailing slash if present (except for root)
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1);
+  }
+  
+  // Get query parameters
+  const paramContainer = document.getElementById('queryParams');
+  const paramRows = paramContainer.querySelectorAll('.param-row');
+  const searchParams = new URLSearchParams();
+  
+  paramRows.forEach(row => {
+    const keyInput = row.querySelector('[data-type="key"]');
+    const valueInput = row.querySelector('[data-type="value"]');
+    const key = keyInput.value.trim();
+    const value = valueInput.value.trim();
+    
+    if (key) {
+      searchParams.append(key, value);
+    }
+  });
+  
+  // Get hash
+  const hash = document.getElementById('hash').value.trim();
+  
+  // Build complete URL
+  let newUrl = `${protocol}//${host}${path}`;
+  
+  const queryString = searchParams.toString();
+  if (queryString) {
+    newUrl += '?' + queryString;
+  }
+  
+  if (hash) {
+    newUrl += '#' + hash;
+  }
+  
+  return newUrl;
+}
+
+// Update preview
+function updatePreview() {
+  try {
+    const newUrl = buildUrl();
+    document.getElementById('currentUrl').textContent = newUrl;
+  } catch (error) {
+    console.error('Error building URL:', error);
+  }
+}
+
+// Apply the new URL and navigate
+async function applyUrl() {
+  try {
+    const newUrl = buildUrl();
+    
+    // Validate URL
+    new URL(newUrl);
+    
+    // Save to history
+    await saveUrlToHistory(newUrl, 'navigated');
+    
+    // Save path segments and params
+    await savePathsAndParams();
+    
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    await chrome.tabs.update(tab.id, { url: newUrl });
+    
+    // Close popup after successful navigation
+    window.close();
+  } catch (error) {
+    console.error('Error applying URL:', error);
+    alert('Error: Invalid URL format. Please check your inputs.');
+  }
+}
+
+// Copy URL to clipboard
+async function copyUrl() {
+  try {
+    const newUrl = buildUrl();
+    
+    // Use the Clipboard API
+    await navigator.clipboard.writeText(newUrl);
+    
+    // Save to history as copied
+    await saveUrlToHistory(newUrl, 'copied');
+    
+    // Save path segments and params
+    await savePathsAndParams();
+    
+    // Visual feedback
+    const btn = document.getElementById('copyUrl');
+    const originalText = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    btn.style.background = '#28a745';
+    
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.style.background = '';
+    }, 2000);
+    
+    // Refresh history display
+    await loadHistory();
+  } catch (error) {
+    console.error('Error copying URL:', error);
+    alert('Error copying to clipboard');
+  }
+}
+
+// ============ STORAGE FUNCTIONS ============
+
+// Check if storage API is available
+function isStorageAvailable() {
+  return typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+}
+
+// Save URL to history
+async function saveUrlToHistory(url, type) {
+  if (!isStorageAvailable()) {
+    console.warn('Storage API not available. Please reload the extension.');
+    return;
+  }
+  
+  try {
+    const result = await chrome.storage.local.get(STORAGE_KEYS.URL_HISTORY);
+    let history = result[STORAGE_KEYS.URL_HISTORY] || [];
+    
+    // Add new entry
+    const entry = {
+      url: url,
+      type: type,
+      timestamp: Date.now()
+    };
+    
+    // Remove duplicates
+    history = history.filter(item => item.url !== url);
+    
+    // Add to beginning
+    history.unshift(entry);
+    
+    // Limit size
+    if (history.length > MAX_HISTORY_ITEMS) {
+      history = history.slice(0, MAX_HISTORY_ITEMS);
+    }
+    
+    // Save
+    await chrome.storage.local.set({ [STORAGE_KEYS.URL_HISTORY]: history });
+  } catch (error) {
+    console.error('Error saving URL to history:', error);
+  }
+}
+
+// Save path segments and query parameters
+async function savePathsAndParams() {
+  if (!isStorageAvailable()) {
+    console.warn('Storage API not available. Please reload the extension.');
+    return;
+  }
+  
+  try {
+    // Get current path segments
+    const pathContainer = document.getElementById('pathSegments');
+    const pathInputs = pathContainer.querySelectorAll('input');
+    const paths = [];
+    
+    pathInputs.forEach((input, index) => {
+      if (index > 0) { // Skip root
+        const segment = input.value.trim();
+        if (segment) {
+          paths.push(segment);
+        }
+      }
+    });
+    
+    // Get current query parameters
+    const paramContainer = document.getElementById('queryParams');
+    const paramRows = paramContainer.querySelectorAll('.param-row');
+    const params = [];
+    
+    paramRows.forEach(row => {
+      const keyInput = row.querySelector('[data-type="key"]');
+      const valueInput = row.querySelector('[data-type="value"]');
+      const key = keyInput.value.trim();
+      
+      if (key) {
+        params.push(key);
+      }
+    });
+    
+    // Load existing
+    const result = await chrome.storage.local.get([STORAGE_KEYS.PATH_SEGMENTS, STORAGE_KEYS.QUERY_PARAMS]);
+    let savedPaths = result[STORAGE_KEYS.PATH_SEGMENTS] || [];
+    let savedParams = result[STORAGE_KEYS.QUERY_PARAMS] || [];
+    
+    // Add new paths
+    paths.forEach(path => {
+      if (!savedPaths.includes(path)) {
+        savedPaths.unshift(path);
+      }
+    });
+    
+    // Add new params
+    params.forEach(param => {
+      if (!savedParams.includes(param)) {
+        savedParams.unshift(param);
+      }
+    });
+    
+    // Limit size
+    savedPaths = savedPaths.slice(0, MAX_SUGGESTIONS);
+    savedParams = savedParams.slice(0, MAX_SUGGESTIONS);
+    
+    // Save
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.PATH_SEGMENTS]: savedPaths,
+      [STORAGE_KEYS.QUERY_PARAMS]: savedParams
+    });
+  } catch (error) {
+    console.error('Error saving paths and params:', error);
+  }
+}
+
+// Load and display history
+async function loadHistory() {
+  const container = document.getElementById('urlHistory');
+  
+  if (!isStorageAvailable()) {
+    container.innerHTML = '';
+    const errorState = document.createElement('div');
+    errorState.className = 'empty-state';
+    errorState.textContent = '⚠️ Please reload the extension';
+    errorState.style.color = '#e53e3e';
+    container.appendChild(errorState);
+    return;
+  }
+  
+  try {
+    const result = await chrome.storage.local.get(STORAGE_KEYS.URL_HISTORY);
+    const history = result[STORAGE_KEYS.URL_HISTORY] || [];
+    
+    container.innerHTML = '';
+    
+    if (history.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.textContent = 'No history yet';
+      container.appendChild(emptyState);
+      return;
+    }
+    
+    history.forEach(entry => {
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      
+      const urlSpan = document.createElement('span');
+      urlSpan.className = 'history-url';
+      urlSpan.textContent = entry.url;
+      
+      const badge = document.createElement('span');
+      badge.className = `history-badge ${entry.type === 'copied' ? 'copied' : ''}`;
+      badge.textContent = entry.type;
+      
+      div.appendChild(urlSpan);
+      div.appendChild(badge);
+      
+      // Click to load URL
+      div.addEventListener('click', () => {
+        loadUrlIntoEditor(entry.url);
+      });
+      
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error('Error loading history:', error);
+  }
+}
+
+// Load suggestions (path segments and params)
+async function loadSuggestions() {
+  const pathContainer = document.getElementById('recentPaths');
+  const paramContainer = document.getElementById('recentParams');
+  
+  if (!isStorageAvailable()) {
+    pathContainer.innerHTML = '';
+    const errorState1 = document.createElement('div');
+    errorState1.className = 'empty-state';
+    errorState1.textContent = '⚠️ Please reload the extension';
+    errorState1.style.color = '#e53e3e';
+    pathContainer.appendChild(errorState1);
+    
+    paramContainer.innerHTML = '';
+    const errorState2 = document.createElement('div');
+    errorState2.className = 'empty-state';
+    errorState2.textContent = '⚠️ Please reload the extension';
+    errorState2.style.color = '#e53e3e';
+    paramContainer.appendChild(errorState2);
+    return;
+  }
+  
+  try {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.PATH_SEGMENTS, STORAGE_KEYS.QUERY_PARAMS]);
+    const paths = result[STORAGE_KEYS.PATH_SEGMENTS] || [];
+    const params = result[STORAGE_KEYS.QUERY_PARAMS] || [];
+    
+    // Render path chips
+    pathContainer.innerHTML = '';
+    
+    if (paths.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.textContent = 'No recent paths';
+      pathContainer.appendChild(emptyState);
+    } else {
+      paths.forEach(path => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = path;
+        chip.addEventListener('click', () => {
+          addPathSegmentWithValue(path);
+        });
+        pathContainer.appendChild(chip);
+      });
+    }
+    
+    // Render param chips
+    paramContainer.innerHTML = '';
+    
+    if (params.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.textContent = 'No recent parameters';
+      paramContainer.appendChild(emptyState);
+    } else {
+      params.forEach(param => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = param;
+        chip.addEventListener('click', () => {
+          addQueryParamWithKey(param);
+        });
+        paramContainer.appendChild(chip);
+      });
+    }
+  } catch (error) {
+    console.error('Error loading suggestions:', error);
+  }
+}
+
+// Load a URL into the editor
+function loadUrlIntoEditor(url) {
+  try {
+    urlObj = new URL(url);
+    currentUrl = url;
+    displayUrl();
+    populateFields();
+  } catch (error) {
+    console.error('Error loading URL into editor:', error);
+  }
+}
+
+// Add path segment with a specific value
+function addPathSegmentWithValue(value) {
+  const container = document.getElementById('pathSegments');
+  const currentSegmentCount = container.children.length;
+  
+  const div = document.createElement('div');
+  div.className = 'path-segment';
+  
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = value;
+  input.placeholder = 'segment';
+  input.dataset.index = currentSegmentCount;
+  
+  // Add reorder buttons
+  const reorderDiv = document.createElement('div');
+  reorderDiv.className = 'reorder-buttons';
+  
+  const upBtn = document.createElement('button');
+  upBtn.className = 'btn-reorder';
+  upBtn.textContent = '↑';
+  upBtn.title = 'Move up';
+  upBtn.onclick = () => {
+    const allSegments = Array.from(container.children);
+    const currentIndex = allSegments.indexOf(div);
+    if (currentIndex > 1) {
+      container.insertBefore(div, allSegments[currentIndex - 1]);
+      updatePreview();
+    }
+  };
+  
+  const downBtn = document.createElement('button');
+  downBtn.className = 'btn-reorder';
+  downBtn.textContent = '↓';
+  downBtn.title = 'Move down';
+  downBtn.onclick = () => {
+    const allSegments = Array.from(container.children);
+    const currentIndex = allSegments.indexOf(div);
+    if (currentIndex < allSegments.length - 1) {
+      container.insertBefore(div, allSegments[currentIndex + 2]);
+      updatePreview();
+    }
+  };
+  
+  reorderDiv.appendChild(upBtn);
+  reorderDiv.appendChild(downBtn);
+  div.appendChild(reorderDiv);
+  
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'btn btn-remove';
+  removeBtn.textContent = '🗑️';
+  removeBtn.onclick = () => {
+    div.remove();
+    updatePreview();
+  };
+  
+  div.appendChild(input);
+  div.appendChild(removeBtn);
+  container.appendChild(div);
+  
+  input.focus();
+  updatePreview();
+}
+
+// Add query param with a specific key
+function addQueryParamWithKey(key) {
+  const container = document.getElementById('queryParams');
+  
+  // Remove empty state if present
+  const emptyState = container.querySelector('.empty-state');
+  if (emptyState) {
+    emptyState.remove();
+  }
+  
+  const div = document.createElement('div');
+  div.className = 'param-row';
+  
+  const keyInput = document.createElement('input');
+  keyInput.type = 'text';
+  keyInput.value = key;
+  keyInput.placeholder = 'key';
+  keyInput.dataset.type = 'key';
+  
+  const valueInput = document.createElement('input');
+  valueInput.type = 'text';
+  valueInput.placeholder = 'value';
+  valueInput.dataset.type = 'value';
+  
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'btn btn-remove';
+  removeBtn.textContent = '🗑️';
+  removeBtn.onclick = () => {
+    div.remove();
+    if (container.children.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.textContent = 'No query parameters';
+      container.appendChild(emptyState);
+    }
+    updatePreview();
+  };
+  
+  div.appendChild(keyInput);
+  div.appendChild(valueInput);
+  div.appendChild(removeBtn);
+  container.appendChild(div);
+  
+  valueInput.focus();
+  updatePreview();
+}
+
+// Clear history
+async function clearHistory() {
+  if (!isStorageAvailable()) {
+    alert('Storage API not available. Please reload the extension.');
+    return;
+  }
+  
+  if (confirm('Are you sure you want to clear all URL history?')) {
+    await chrome.storage.local.set({ [STORAGE_KEYS.URL_HISTORY]: [] });
+    await loadHistory();
+  }
+}
+
+// Clear suggestions
+async function clearSuggestions() {
+  if (!isStorageAvailable()) {
+    alert('Storage API not available. Please reload the extension.');
+    return;
+  }
+  
+  if (confirm('Are you sure you want to clear all suggestions?')) {
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.PATH_SEGMENTS]: [],
+      [STORAGE_KEYS.QUERY_PARAMS]: []
+    });
+    await loadSuggestions();
+  }
+}
+
+// Setup collapsible sections
+function setupCollapsibles() {
+  const historyHeader = document.getElementById('historyHeader');
+  const historyContent = document.getElementById('historyContent');
+  const suggestionsHeader = document.getElementById('suggestionsHeader');
+  const suggestionsContent = document.getElementById('suggestionsContent');
+  
+  historyHeader.addEventListener('click', () => {
+    historyContent.classList.toggle('collapsed');
+    historyHeader.querySelector('.collapse-icon').classList.toggle('collapsed');
+  });
+  
+  suggestionsHeader.addEventListener('click', () => {
+    suggestionsContent.classList.toggle('collapsed');
+    suggestionsHeader.querySelector('.collapse-icon').classList.toggle('collapsed');
+  });
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  // Add buttons
+  document.getElementById('addPath').addEventListener('click', addPathSegment);
+  document.getElementById('addParam').addEventListener('click', addQueryParam);
+  
+  // Action buttons
+  document.getElementById('applyUrl').addEventListener('click', applyUrl);
+  document.getElementById('copyUrl').addEventListener('click', copyUrl);
+  
+  // History buttons
+  document.getElementById('clearHistory').addEventListener('click', clearHistory);
+  document.getElementById('clearSuggestions').addEventListener('click', clearSuggestions);
+  
+  // Update preview on any input change
+  document.addEventListener('input', (e) => {
+    if (e.target.tagName === 'INPUT') {
+      updatePreview();
+    }
+  });
+  
+  // Handle Enter key to apply changes
+  document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+      applyUrl();
+    }
+  });
+}

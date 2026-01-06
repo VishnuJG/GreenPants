@@ -1,0 +1,29 @@
+{
+    "name": "API Tester & URL Editor",
+    "description": "Full-featured API testing tool with headers, payloads, and all HTTP methods (GET, POST, PUT, DELETE, etc.)",
+    "version": "2.1",
+    "manifest_version": 3,
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting",
+        "tabs"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["scripts/timestamp-viewer.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["response-viewer.html"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "action": {
+        "default_popup": "hello.html",
+        "default_icon": "hello_extensions.png"
+    }
+}
