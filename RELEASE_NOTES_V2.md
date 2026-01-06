@@ -155,7 +155,7 @@ We'd love to hear from you!
 
 ## 🙏 Thank You
 
-Thank you for using API Tester & URL Editor! This major update represents months of work to bring you a tool that's:
+Thank you for using Quick URL Editor! This major update represents months of work to bring you a tool that's:
 
 - **Fast**: No server round trips
 - **Private**: All data stays local

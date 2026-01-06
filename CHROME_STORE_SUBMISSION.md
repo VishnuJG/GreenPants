@@ -77,14 +77,14 @@ You can also host it on GitHub Pages or any public URL and provide that link.
 ## Store Listing Tips
 
 ### Name
-API Tester & URL Editor
+Quick URL Editor
 
 ### Short Description (132 characters max)
 Full-featured API testing + URL editing. Test REST APIs with custom headers/bodies. All HTTP methods. Response viewer included.
 
 ### Detailed Description Template
 ```
-🚀 API Tester & URL Editor - Version 2.0
+🚀 Quick URL Editor - Version 2.0
 
 The ultimate tool for developers! Combines powerful URL editing with complete API testing capabilities - all in your browser.
 

@@ -1,4 +1,4 @@
-# 🚀 API Tester & URL Editor - Chrome Extension
+# 🚀 Quick URL Editor - Chrome Extension
 
 **Version 2.0** - A powerful Chrome extension that combines intelligent URL editing with full-featured API testing capabilities. Test APIs with custom headers, request bodies, and all HTTP methods - all in a beautiful, modern interface!
 
