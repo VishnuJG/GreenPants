@@ -56,7 +56,20 @@ export function renderPathSegments() {
     removeBtn.className = 'btn btn-remove';
     removeBtn.textContent = '🗑️';
     removeBtn.draggable = false; // Prevent button from being draggable
-    removeBtn.onclick = () => removePathSegment(index);
+    // Use the actual DOM element instead of index to handle drag-and-drop reordering
+    removeBtn.onclick = (e) => {
+      e.stopPropagation(); // Prevent any event bubbling
+      const segmentElement = e.target.closest('.path-segment');
+      const container = segmentElement?.parentElement;
+      // Prevent removing root segment (first segment or one with index 0)
+      if (segmentElement && 
+          segmentElement.dataset.index !== '0' && 
+          container && 
+          container.firstElementChild !== segmentElement) {
+        segmentElement.remove();
+        updatePreview();
+      }
+    };
     
     // Don't allow removing the first segment (root)
     if (index === 0) {
@@ -98,9 +111,19 @@ export function addPathSegment() {
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn btn-remove';
   removeBtn.textContent = '🗑️';
-  removeBtn.onclick = () => {
-    div.remove();
-    updatePreview();
+  removeBtn.draggable = false;
+  removeBtn.onclick = (e) => {
+    e.stopPropagation();
+    const segmentElement = e.target.closest('.path-segment');
+    const container = segmentElement?.parentElement;
+    // Prevent removing root segment (first segment or one with index 0)
+    if (segmentElement && 
+        segmentElement.dataset.index !== '0' && 
+        container && 
+        container.firstElementChild !== segmentElement) {
+      segmentElement.remove();
+      updatePreview();
+    }
   };
   
   div.appendChild(input);
@@ -115,16 +138,18 @@ export function addPathSegment() {
 }
 
 // Remove a path segment
+// This function is kept for backward compatibility, but now works with DOM element
 export function removePathSegment(index) {
   if (index === 0) return; // Can't remove root
   
   const container = document.getElementById('pathSegments');
-  const segments = container.querySelectorAll('.path-segment');
-  if (segments[index]) {
-    segments[index].remove();
+  const segments = Array.from(container.querySelectorAll('.path-segment'));
+  // Find segment by its dataset.index attribute, not DOM position
+  const segmentToRemove = segments.find(seg => seg.dataset.index === String(index));
+  if (segmentToRemove && segmentToRemove.dataset.index !== '0') {
+    segmentToRemove.remove();
+    updatePreview();
   }
-  
-  updatePreview();
 }
 
 
@@ -153,9 +178,19 @@ export function addPathSegmentWithValue(value) {
   const removeBtn = document.createElement('button');
   removeBtn.className = 'btn btn-remove';
   removeBtn.textContent = '🗑️';
-  removeBtn.onclick = () => {
-    div.remove();
-    updatePreview();
+  removeBtn.draggable = false;
+  removeBtn.onclick = (e) => {
+    e.stopPropagation();
+    const segmentElement = e.target.closest('.path-segment');
+    const container = segmentElement?.parentElement;
+    // Prevent removing root segment (first segment or one with index 0)
+    if (segmentElement && 
+        segmentElement.dataset.index !== '0' && 
+        container && 
+        container.firstElementChild !== segmentElement) {
+      segmentElement.remove();
+      updatePreview();
+    }
   };
   
   div.appendChild(input);

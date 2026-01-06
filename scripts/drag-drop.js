@@ -125,6 +125,22 @@ function handleDrop(e) {
   // Insert the dragged element before the target
   container.insertBefore(draggedElement, target);
   
+  // Update dataset.index values to reflect new order (except root which stays 0)
+  const segments = container.querySelectorAll('.path-segment');
+  segments.forEach((segment, newIndex) => {
+    // Root segment always has index 0
+    if (newIndex === 0) {
+      segment.dataset.index = '0';
+    } else {
+      segment.dataset.index = String(newIndex);
+    }
+    // Also update input dataset.index
+    const input = segment.querySelector('input');
+    if (input) {
+      input.dataset.index = String(newIndex);
+    }
+  });
+  
   updatePreview();
   
   return false;
