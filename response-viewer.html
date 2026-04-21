@@ -22,6 +22,18 @@
       --info-dark: #3b82f6;
       --bg-gradient-start: #22d3ee;
       --bg-gradient-end: #0ea5e9;
+
+      /* Base UI tokens (overridden by JS too) */
+      --surface: rgba(255, 255, 255, 0.96);
+      --surface-2: rgba(255, 255, 255, 0.75);
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: rgba(15, 23, 42, 0.10);
+      --input-bg: #ffffff;
+      --input-text: #0f172a;
+      --input-placeholder: #94a3b8;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
     }
 
     * {
@@ -35,6 +47,7 @@
       background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
       min-height: 100vh;
       padding: 20px;
+      color: var(--text);
     }
 
     .container {
@@ -43,11 +56,12 @@
     }
 
     .header {
-      background: white;
+      background: var(--surface);
       border-radius: 16px;
       padding: 24px 32px;
       margin-bottom: 20px;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
     }
 
     .header h1 {
@@ -74,7 +88,7 @@
       align-items: flex-start;
       gap: 8px;
       font-size: 14px;
-      color: #475569;
+      color: var(--text-muted);
       max-width: 100%;
     }
 
@@ -85,7 +99,7 @@
 
     .info-label {
       font-weight: 700;
-      color: #1e293b;
+      color: var(--text);
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -112,11 +126,12 @@
     .method-patch { background: var(--secondary); color: white; }
 
     .status-section {
-      background: white;
+      background: var(--surface);
       border-radius: 16px;
       padding: 24px 32px;
       margin-bottom: 20px;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
     }
 
     .status-badge {
@@ -147,16 +162,17 @@
 
     .duration {
       font-size: 14px;
-      color: #64748b;
+      color: var(--text-muted);
       margin-left: auto;
     }
 
     .content-section {
-      background: white;
+      background: var(--surface);
       border-radius: 16px;
       padding: 24px 32px;
       margin-bottom: 20px;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+      border: 1px solid var(--border);
     }
 
     .section-header {
@@ -169,7 +185,7 @@
     .section-title {
       font-size: 20px;
       font-weight: 700;
-      color: #1e293b;
+      color: var(--text);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -201,8 +217,8 @@
     }
 
     .code-block {
-      background: #0f172a;
-      color: var(--success);
+      background: var(--code-bg);
+      color: var(--code-text);
       padding: 20px;
       border-radius: 12px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
@@ -266,11 +282,11 @@
     }
 
     .error-message {
-      background: #fef2f2;
-      border: 2px solid #fecaca;
+      background: color-mix(in srgb, var(--error) 12%, var(--surface));
+      border: 2px solid color-mix(in srgb, var(--error) 35%, transparent);
       border-radius: 10px;
       padding: 16px;
-      color: #b91c1c;
+      color: color-mix(in srgb, var(--error) 70%, var(--text));
       margin-top: 16px;
     }
 
@@ -282,13 +298,13 @@
 
     .tab-btn {
       padding: 12px 24px;
-      background: white;
-      border: 2px solid transparent;
+      background: var(--surface);
+      border: 2px solid var(--border);
       border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      color: #475569;
+      color: var(--text-muted);
     }
 
     .tab-btn:hover {
@@ -310,55 +326,27 @@
     }
   </style>
   <script>
-    // Theme definitions matching theme-manager.js
+    // Theme definitions matching scripts/theme-manager.js
     const THEMES = {
-      lavender: {
-        primary: '#9f7aea', primaryDark: '#805ad5', secondary: '#b794f4', accent: '#d6bcfa',
-        gradientStart: '#9f7aea', gradientEnd: '#805ad5', success: '#68d391', successDark: '#48bb78',
-        error: '#fc8181', errorDark: '#f56565', warning: '#fbd38d', warningDark: '#ed8936',
-        info: '#63b3ed', infoDark: '#4299e1', bgGradientStart: '#a78bfa', bgGradientEnd: '#c084fc'
+      light: {
+        primary: '#2563eb', primaryDark: '#1d4ed8', secondary: '#60a5fa', accent: '#93c5fd',
+        gradientStart: '#2563eb', gradientEnd: '#06b6d4', success: '#16a34a', successDark: '#15803d',
+        error: '#dc2626', errorDark: '#b91c1c', warning: '#d97706', warningDark: '#b45309',
+        info: '#0284c7', infoDark: '#0369a1', bgGradientStart: '#f8fafc', bgGradientEnd: '#e2e8f0',
+        surface: 'rgba(255, 255, 255, 0.96)', surface2: 'rgba(255, 255, 255, 0.75)',
+        text: '#0f172a', textMuted: '#475569', border: 'rgba(15, 23, 42, 0.10)',
+        inputBg: '#ffffff', inputText: '#0f172a', inputPlaceholder: '#94a3b8',
+        codeBg: '#0f172a', codeText: '#e2e8f0'
       },
-      ocean: {
-        primary: '#0ea5e9', primaryDark: '#0284c7', secondary: '#38bdf8', accent: '#7dd3fc',
-        gradientStart: '#0ea5e9', gradientEnd: '#06b6d4', success: '#34d399', successDark: '#10b981',
+      dark: {
+        primary: '#60a5fa', primaryDark: '#3b82f6', secondary: '#93c5fd', accent: '#bfdbfe',
+        gradientStart: '#60a5fa', gradientEnd: '#a78bfa', success: '#4ade80', successDark: '#22c55e',
         error: '#f87171', errorDark: '#ef4444', warning: '#fbbf24', warningDark: '#f59e0b',
-        info: '#60a5fa', infoDark: '#3b82f6', bgGradientStart: '#22d3ee', bgGradientEnd: '#0ea5e9'
-      },
-      sunset: {
-        primary: '#f97316', primaryDark: '#ea580c', secondary: '#fb923c', accent: '#fdba74',
-        gradientStart: '#f97316', gradientEnd: '#ef4444', success: '#4ade80', successDark: '#22c55e',
-        error: '#f87171', errorDark: '#ef4444', warning: '#fcd34d', warningDark: '#fbbf24',
-        info: '#60a5fa', infoDark: '#3b82f6', bgGradientStart: '#fb923c', bgGradientEnd: '#f43f5e'
-      },
-      forest: {
-        primary: '#22c55e', primaryDark: '#16a34a', secondary: '#4ade80', accent: '#86efac',
-        gradientStart: '#22c55e', gradientEnd: '#14b8a6', success: '#34d399', successDark: '#10b981',
-        error: '#fb7185', errorDark: '#f43f5e', warning: '#fcd34d', warningDark: '#fbbf24',
-        info: '#38bdf8', infoDark: '#0ea5e9', bgGradientStart: '#4ade80', bgGradientEnd: '#2dd4bf'
-      },
-      neon: {
-        primary: '#ec4899', primaryDark: '#db2777', secondary: '#f472b6', accent: '#f9a8d4',
-        gradientStart: '#ec4899', gradientEnd: '#8b5cf6', success: '#4ade80', successDark: '#22c55e',
-        error: '#f87171', errorDark: '#ef4444', warning: '#facc15', warningDark: '#eab308',
-        info: '#22d3ee', infoDark: '#06b6d4', bgGradientStart: '#f472b6', bgGradientEnd: '#a78bfa'
-      },
-      daylight: {
-        primary: '#3b82f6', primaryDark: '#2563eb', secondary: '#60a5fa', accent: '#93c5fd',
-        gradientStart: '#3b82f6', gradientEnd: '#6366f1', success: '#34d399', successDark: '#10b981',
-        error: '#f87171', errorDark: '#ef4444', warning: '#fbbf24', warningDark: '#f59e0b',
-        info: '#38bdf8', infoDark: '#0ea5e9', bgGradientStart: '#60a5fa', bgGradientEnd: '#818cf8'
-      },
-      cherry: {
-        primary: '#e11d48', primaryDark: '#be123c', secondary: '#fb7185', accent: '#fda4af',
-        gradientStart: '#e11d48', gradientEnd: '#db2777', success: '#4ade80', successDark: '#22c55e',
-        error: '#fca5a5', errorDark: '#f87171', warning: '#fde047', warningDark: '#facc15',
-        info: '#67e8f9', infoDark: '#22d3ee', bgGradientStart: '#fb7185', bgGradientEnd: '#f472b6'
-      },
-      midnight: {
-        primary: '#6366f1', primaryDark: '#4f46e5', secondary: '#818cf8', accent: '#a5b4fc',
-        gradientStart: '#6366f1', gradientEnd: '#8b5cf6', success: '#4ade80', successDark: '#22c55e',
-        error: '#f87171', errorDark: '#ef4444', warning: '#fbbf24', warningDark: '#f59e0b',
-        info: '#38bdf8', infoDark: '#0ea5e9', bgGradientStart: '#818cf8', bgGradientEnd: '#a78bfa'
+        info: '#7dd3fc', infoDark: '#38bdf8', bgGradientStart: '#070a12', bgGradientEnd: '#0b1220',
+        surface: 'rgba(17, 24, 39, 0.86)', surface2: 'rgba(30, 41, 59, 0.66)',
+        text: '#e5e7eb', textMuted: '#cbd5e1', border: 'rgba(148, 163, 184, 0.20)',
+        inputBg: 'rgba(15, 23, 42, 0.80)', inputText: '#e5e7eb', inputPlaceholder: 'rgba(203, 213, 225, 0.70)',
+        codeBg: '#0b1220', codeText: '#e5e7eb'
       }
     };
 
@@ -366,8 +354,8 @@
     async function loadAndApplyTheme() {
       try {
         const result = await chrome.storage.local.get('selectedTheme');
-        const themeName = result.selectedTheme || 'ocean';
-        const theme = THEMES[themeName] || THEMES.ocean;
+        const themeName = (result.selectedTheme && THEMES[result.selectedTheme]) ? result.selectedTheme : 'light';
+        const theme = THEMES[themeName];
         const root = document.documentElement;
         
         root.style.setProperty('--primary', theme.primary);
@@ -386,6 +374,17 @@
         root.style.setProperty('--info-dark', theme.infoDark);
         root.style.setProperty('--bg-gradient-start', theme.bgGradientStart);
         root.style.setProperty('--bg-gradient-end', theme.bgGradientEnd);
+
+        root.style.setProperty('--surface', theme.surface);
+        root.style.setProperty('--surface-2', theme.surface2);
+        root.style.setProperty('--text', theme.text);
+        root.style.setProperty('--text-muted', theme.textMuted);
+        root.style.setProperty('--border', theme.border);
+        root.style.setProperty('--input-bg', theme.inputBg);
+        root.style.setProperty('--input-text', theme.inputText);
+        root.style.setProperty('--input-placeholder', theme.inputPlaceholder);
+        root.style.setProperty('--code-bg', theme.codeBg);
+        root.style.setProperty('--code-text', theme.codeText);
       } catch (e) {
         console.log('Theme loading error:', e);
       }

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>URL Path & Params Editor</title>
+  <script src="scripts/early-theme.js"></script>
   <style>
     :root {
       /* Default theme (Ocean) - will be overridden by JS */
@@ -22,6 +23,18 @@
       --info-dark: #3b82f6;
       --bg-gradient-start: #22d3ee;
       --bg-gradient-end: #0ea5e9;
+
+      /* Base UI tokens (overridden by JS too) */
+      --surface: rgba(255, 255, 255, 0.96);
+      --surface-2: rgba(255, 255, 255, 0.75);
+      --text: #0f172a;
+      --text-muted: #475569;
+      --border: rgba(15, 23, 42, 0.10);
+      --input-bg: #ffffff;
+      --input-text: #0f172a;
+      --input-placeholder: #94a3b8;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
     }
 
     * {
@@ -35,7 +48,7 @@
       margin: 0;
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-      color: #1e293b;
+      color: var(--text);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -54,7 +67,7 @@
       align-items: center;
       justify-content: flex-end;
       padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.15);
+      background: var(--surface-2);
       backdrop-filter: blur(10px);
       gap: 8px;
     }
@@ -72,15 +85,15 @@
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
-      background: rgba(255, 255, 255, 0.95);
-      color: var(--primary-dark);
+      background: var(--surface);
+      color: var(--text);
       cursor: pointer;
       transition: all 0.2s;
       min-width: 160px;
     }
 
     #themeSelector:hover {
-      background: white;
+      background: var(--surface);
       border-color: rgba(255, 255, 255, 0.8);
       transform: scale(1.02);
     }
@@ -93,10 +106,11 @@
     .header {
       text-align: center;
       padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.98);
+      background: var(--surface);
       backdrop-filter: blur(10px);
       border-bottom: 3px solid var(--primary);
       margin-bottom: 16px;
+      color: var(--text);
     }
 
     .header h1 {
@@ -113,13 +127,13 @@
     .header p {
       margin: 4px 0 0 0;
       font-size: 12px;
-      color: #64748b;
+      color: var(--text-muted);
     }
     
     h2 {
       margin: 0 0 8px 0;
       font-size: 13px;
-      color: #1e293b;
+      color: var(--text);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -160,7 +174,7 @@
     }
 
     .tab-selector:hover {
-      background: white;
+      background: var(--surface);
       border-color: rgba(255, 255, 255, 0.8);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       transform: translateY(-1px);
@@ -168,14 +182,14 @@
 
     .tab-selector:focus {
       outline: none;
-      background: white;
+      background: var(--surface);
       border-color: white;
       box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .tab-selector option {
-      background: white;
-      color: #1e293b;
+      background: var(--surface);
+      color: var(--text);
       padding: 10px;
       font-weight: 600;
     }
@@ -199,21 +213,21 @@
     }
     
     .section {
-      background: white;
+      background: var(--surface);
       border-radius: 12px;
       padding: 14px;
       margin-bottom: 10px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
     }
     
     .url-display {
-      background: #f8fafc;
+      background: var(--input-bg);
       padding: 14px 16px;
       border-radius: 10px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       font-size: 14px;
-      color: #0f172a;
+      color: var(--input-text);
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-weight: 500;
       transition: all 0.2s;
@@ -228,16 +242,16 @@
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
-      background: white;
+      background: var(--input-bg);
     }
 
     .url-display:hover {
-      border-color: #cbd5e1;
-      background: white;
+      border-color: color-mix(in srgb, var(--border) 60%, var(--text) 20%);
+      background: var(--input-bg);
     }
 
     .url-display::placeholder {
-      color: #94a3b8;
+      color: var(--input-placeholder);
       font-style: italic;
     }
     
@@ -249,12 +263,13 @@
     
     .protocol-host input {
       padding: 10px 14px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--input-text);
     }
 
     .protocol-host input:first-child {
@@ -297,12 +312,13 @@
     .path-segment input, .param-row input {
       flex: 1;
       padding: 9px 12px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--input-text);
     }
 
     .path-segment input:focus, .param-row input:focus {
@@ -344,7 +360,7 @@
     }
 
     .btn-remove:disabled {
-      background: #e2e8f0;
+      background: color-mix(in srgb, var(--surface) 70%, transparent);
       cursor: not-allowed;
       box-shadow: none;
     }
@@ -442,18 +458,18 @@
     
     .empty-state {
       text-align: center;
-      color: #94a3b8;
+      color: var(--text-muted);
       font-size: 13px;
       padding: 16px;
       font-style: italic;
-      background: #f8fafc;
+      background: var(--surface-2);
       border-radius: 10px;
-      border: 2px dashed #e2e8f0;
+      border: 2px dashed var(--border);
     }
     
     .label {
       font-size: 11px;
-      color: #64748b;
+      color: var(--text-muted);
       margin-bottom: 8px;
       font-weight: 600;
       text-transform: uppercase;
@@ -471,12 +487,12 @@
     }
 
     #pathSegments::-webkit-scrollbar-track, #queryParams::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: var(--surface-2);
       border-radius: 10px;
     }
 
     #pathSegments::-webkit-scrollbar-thumb, #queryParams::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: color-mix(in srgb, var(--text-muted) 35%, transparent);
       border-radius: 10px;
     }
 
@@ -487,12 +503,13 @@
     .hash-section input {
       width: 100%;
       padding: 10px 14px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--input-text);
     }
 
     .hash-section input:focus {
@@ -502,7 +519,7 @@
     }
 
     .actions-section {
-      background: rgba(255, 255, 255, 0.98);
+      background: var(--surface);
       padding: 8px;
       position: fixed;
       bottom: 0;
@@ -525,11 +542,11 @@
     }
 
     .history-item {
-      background: #f8fafc;
+      background: var(--surface-2);
       padding: 10px 12px;
       border-radius: 10px;
       margin-bottom: 8px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       transition: all 0.2s;
       cursor: pointer;
       font-size: 12px;
@@ -541,7 +558,7 @@
     }
 
     .history-item:hover {
-      background: #f1f5f9;
+      background: color-mix(in srgb, var(--surface-2) 80%, var(--primary) 8%);
       border-color: var(--primary);
       transform: translateX(4px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -557,7 +574,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #1e293b;
+      color: var(--text);
     }
 
     .history-badge {
@@ -586,12 +603,12 @@
     }
 
     .history-container::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: var(--surface-2);
       border-radius: 10px;
     }
 
     .history-container::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: color-mix(in srgb, var(--text-muted) 35%, transparent);
       border-radius: 10px;
     }
 
@@ -607,15 +624,18 @@
     }
 
     .chip {
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--surface-2) 85%, transparent) 0%,
+        color-mix(in srgb, var(--surface) 85%, transparent) 100%
+      );
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 11px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
-      border: 2px solid #cbd5e1;
+      border: 2px solid var(--border);
       cursor: pointer;
       transition: all 0.2s;
-      color: #1e293b;
+      color: var(--text);
       font-weight: 500;
     }
 
@@ -701,9 +721,9 @@
 
     .method-btn {
       padding: 10px 16px;
-      border: 2px solid #e2e8f0;
-      background: white;
-      color: #475569;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
       font-weight: 700;
       font-size: 12px;
       border-radius: 10px;
@@ -715,7 +735,7 @@
 
     .method-btn:hover {
       border-color: var(--primary);
-      background: #f8fafc;
+      background: color-mix(in srgb, var(--surface) 85%, var(--primary) 8%);
     }
 
     .method-btn.active {
@@ -759,12 +779,13 @@
     .header-row input {
       flex: 1;
       padding: 9px 12px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--input-text);
     }
 
     .header-row input:first-child {
@@ -786,9 +807,9 @@
 
     .body-type-btn {
       padding: 6px 12px;
-      border: 2px solid #e2e8f0;
-      background: white;
-      color: #475569;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
       font-weight: 600;
       font-size: 11px;
       border-radius: 8px;
@@ -799,7 +820,7 @@
 
     .body-type-btn:hover {
       border-color: var(--primary);
-      background: #f8fafc;
+      background: color-mix(in srgb, var(--surface) 85%, var(--primary) 8%);
     }
 
     .body-type-btn.active {
@@ -813,12 +834,13 @@
       width: 100%;
       min-height: 120px;
       padding: 12px;
-      border: 2px solid #e2e8f0;
+      border: 2px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       resize: vertical;
-      background: white;
+      background: var(--input-bg);
+      color: var(--input-text);
       transition: all 0.2s;
     }
 
@@ -830,14 +852,14 @@
 
     /* Response Viewer */
     .response-viewer {
-      background: #0f172a;
+      background: var(--code-bg);
       border-radius: 10px;
       padding: 12px;
       max-height: 200px;
       overflow-y: auto;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       font-size: 12px;
-      color: var(--success);
+      color: var(--code-text);
       white-space: pre-wrap;
       word-break: break-all;
     }
@@ -1060,7 +1082,7 @@
 
         <div style="margin-top: 16px;">
           <div class="label">Display Format</div>
-          <select id="timestampFormat" style="width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: white; cursor: pointer; transition: all 0.2s;">
+          <select id="timestampFormat" style="width: 100%; padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--input-bg); color: var(--input-text); cursor: pointer; transition: all 0.2s;">
             <option value="iso8601">ISO 8601 (2025-11-27T10:30:00.000Z)</option>
             <option value="rfc2822">RFC 2822 (Wed, 27 Nov 2025 10:30:00 GMT)</option>
             <option value="custom">Custom (Nov 27, 2025, 10:30:00 AM)</option>
