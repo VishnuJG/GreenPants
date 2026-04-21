@@ -4,166 +4,77 @@ import { STORAGE_KEYS } from './constants.js';
 
 // Available themes with their CSS variable values
 export const THEMES = {
-  lavender: {
-    name: '💜 Lavender Dream',
-    primary: '#9f7aea',
-    primaryDark: '#805ad5',
-    secondary: '#b794f4',
-    accent: '#d6bcfa',
-    gradientStart: '#9f7aea',
-    gradientEnd: '#805ad5',
-    success: '#68d391',
-    successDark: '#48bb78',
-    error: '#fc8181',
-    errorDark: '#f56565',
-    warning: '#fbd38d',
-    warningDark: '#ed8936',
-    info: '#63b3ed',
-    infoDark: '#4299e1',
-    bgGradientStart: '#a78bfa',
-    bgGradientEnd: '#c084fc'
-  },
-  ocean: {
-    name: '🌊 Ocean Breeze',
-    primary: '#0ea5e9',
-    primaryDark: '#0284c7',
-    secondary: '#38bdf8',
-    accent: '#7dd3fc',
-    gradientStart: '#0ea5e9',
-    gradientEnd: '#06b6d4',
-    success: '#34d399',
-    successDark: '#10b981',
-    error: '#f87171',
-    errorDark: '#ef4444',
-    warning: '#fbbf24',
-    warningDark: '#f59e0b',
-    info: '#60a5fa',
-    infoDark: '#3b82f6',
-    bgGradientStart: '#22d3ee',
-    bgGradientEnd: '#0ea5e9'
-  },
-  sunset: {
-    name: '🌅 Sunset Glow',
-    primary: '#f97316',
-    primaryDark: '#ea580c',
-    secondary: '#fb923c',
-    accent: '#fdba74',
-    gradientStart: '#f97316',
-    gradientEnd: '#ef4444',
-    success: '#4ade80',
-    successDark: '#22c55e',
-    error: '#f87171',
-    errorDark: '#ef4444',
-    warning: '#fcd34d',
-    warningDark: '#fbbf24',
-    info: '#60a5fa',
-    infoDark: '#3b82f6',
-    bgGradientStart: '#fb923c',
-    bgGradientEnd: '#f43f5e'
-  },
-  forest: {
-    name: '🌿 Forest Fresh',
-    primary: '#22c55e',
-    primaryDark: '#16a34a',
-    secondary: '#4ade80',
-    accent: '#86efac',
-    gradientStart: '#22c55e',
-    gradientEnd: '#14b8a6',
-    success: '#34d399',
-    successDark: '#10b981',
-    error: '#fb7185',
-    errorDark: '#f43f5e',
-    warning: '#fcd34d',
-    warningDark: '#fbbf24',
-    info: '#38bdf8',
-    infoDark: '#0ea5e9',
-    bgGradientStart: '#4ade80',
-    bgGradientEnd: '#2dd4bf'
-  },
-  neon: {
-    name: '⚡ Neon Nights',
-    primary: '#ec4899',
-    primaryDark: '#db2777',
-    secondary: '#f472b6',
-    accent: '#f9a8d4',
-    gradientStart: '#ec4899',
-    gradientEnd: '#8b5cf6',
-    success: '#4ade80',
-    successDark: '#22c55e',
-    error: '#f87171',
-    errorDark: '#ef4444',
-    warning: '#facc15',
-    warningDark: '#eab308',
-    info: '#22d3ee',
-    infoDark: '#06b6d4',
-    bgGradientStart: '#f472b6',
-    bgGradientEnd: '#a78bfa'
-  },
-  daylight: {
-    name: '☀️ Bright Day',
-    primary: '#3b82f6',
-    primaryDark: '#2563eb',
+  light: {
+    name: 'Light',
+    primary: '#2563eb',
+    primaryDark: '#1d4ed8',
     secondary: '#60a5fa',
     accent: '#93c5fd',
-    gradientStart: '#3b82f6',
-    gradientEnd: '#6366f1',
-    success: '#34d399',
-    successDark: '#10b981',
-    error: '#f87171',
-    errorDark: '#ef4444',
-    warning: '#fbbf24',
-    warningDark: '#f59e0b',
-    info: '#38bdf8',
-    infoDark: '#0ea5e9',
-    bgGradientStart: '#60a5fa',
-    bgGradientEnd: '#818cf8'
+    gradientStart: '#2563eb',
+    gradientEnd: '#06b6d4',
+    success: '#16a34a',
+    successDark: '#15803d',
+    error: '#dc2626',
+    errorDark: '#b91c1c',
+    warning: '#d97706',
+    warningDark: '#b45309',
+    info: '#0284c7',
+    infoDark: '#0369a1',
+    bgGradientStart: '#f8fafc',
+    bgGradientEnd: '#e2e8f0',
+
+    // Base UI tokens (these drive "light vs dark" feel)
+    surface: 'rgba(255, 255, 255, 0.96)',
+    surface2: 'rgba(255, 255, 255, 0.75)',
+    text: '#0f172a',
+    textMuted: '#475569',
+    border: 'rgba(15, 23, 42, 0.10)',
+    inputBg: '#ffffff',
+    inputText: '#0f172a',
+    inputPlaceholder: '#94a3b8',
+    codeBg: '#0f172a',
+    codeText: '#e2e8f0'
   },
-  cherry: {
-    name: '🍒 Cherry Pop',
-    primary: '#e11d48',
-    primaryDark: '#be123c',
-    secondary: '#fb7185',
-    accent: '#fda4af',
-    gradientStart: '#e11d48',
-    gradientEnd: '#db2777',
-    success: '#4ade80',
-    successDark: '#22c55e',
-    error: '#fca5a5',
-    errorDark: '#f87171',
-    warning: '#fde047',
-    warningDark: '#facc15',
-    info: '#67e8f9',
-    infoDark: '#22d3ee',
-    bgGradientStart: '#fb7185',
-    bgGradientEnd: '#f472b6'
-  },
-  midnight: {
-    name: '🌙 Midnight Blue',
-    primary: '#6366f1',
-    primaryDark: '#4f46e5',
-    secondary: '#818cf8',
-    accent: '#a5b4fc',
-    gradientStart: '#6366f1',
-    gradientEnd: '#8b5cf6',
+  dark: {
+    name: 'Dark',
+    primary: '#60a5fa',
+    primaryDark: '#3b82f6',
+    secondary: '#93c5fd',
+    accent: '#bfdbfe',
+    gradientStart: '#60a5fa',
+    gradientEnd: '#a78bfa',
     success: '#4ade80',
     successDark: '#22c55e',
     error: '#f87171',
     errorDark: '#ef4444',
     warning: '#fbbf24',
     warningDark: '#f59e0b',
-    info: '#38bdf8',
-    infoDark: '#0ea5e9',
-    bgGradientStart: '#818cf8',
-    bgGradientEnd: '#a78bfa'
+    info: '#7dd3fc',
+    infoDark: '#38bdf8',
+    bgGradientStart: '#070a12',
+    bgGradientEnd: '#0b1220',
+
+    // Base UI tokens
+    surface: 'rgba(17, 24, 39, 0.86)',
+    surface2: 'rgba(30, 41, 59, 0.66)',
+    text: '#e5e7eb',
+    textMuted: '#cbd5e1',
+    border: 'rgba(148, 163, 184, 0.20)',
+    inputBg: 'rgba(15, 23, 42, 0.80)',
+    inputText: '#e5e7eb',
+    inputPlaceholder: 'rgba(203, 213, 225, 0.70)',
+    codeBg: '#0b1220',
+    codeText: '#e5e7eb'
   }
 };
 
 // Default theme
-const DEFAULT_THEME = 'ocean';
+const DEFAULT_THEME = 'light';
 
 // Apply theme to document
 export function applyTheme(themeName) {
-  const theme = THEMES[themeName] || THEMES[DEFAULT_THEME];
+  const resolvedThemeName = THEMES[themeName] ? themeName : DEFAULT_THEME;
+  const theme = THEMES[resolvedThemeName];
   const root = document.documentElement;
   
   // Set CSS variables
@@ -183,9 +94,27 @@ export function applyTheme(themeName) {
   root.style.setProperty('--info-dark', theme.infoDark);
   root.style.setProperty('--bg-gradient-start', theme.bgGradientStart);
   root.style.setProperty('--bg-gradient-end', theme.bgGradientEnd);
+
+  // Base UI tokens
+  root.style.setProperty('--surface', theme.surface);
+  root.style.setProperty('--surface-2', theme.surface2);
+  root.style.setProperty('--text', theme.text);
+  root.style.setProperty('--text-muted', theme.textMuted);
+  root.style.setProperty('--border', theme.border);
+  root.style.setProperty('--input-bg', theme.inputBg);
+  root.style.setProperty('--input-text', theme.inputText);
+  root.style.setProperty('--input-placeholder', theme.inputPlaceholder);
+  root.style.setProperty('--code-bg', theme.codeBg);
+  root.style.setProperty('--code-text', theme.codeText);
   
-  // Store the selected theme
-  document.body.dataset.theme = themeName;
+  // Store the selected theme (html + body) and hint native controls
+  root.dataset.theme = resolvedThemeName;
+  root.style.colorScheme = resolvedThemeName;
+  document.body.dataset.theme = resolvedThemeName;
+
+  // Force a style/layout flush to avoid "updates only on hover" repaint issues.
+  void root.offsetHeight;
+  return resolvedThemeName;
 }
 
 // Load saved theme from storage
@@ -194,8 +123,8 @@ export async function loadTheme() {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       const result = await chrome.storage.local.get(STORAGE_KEYS.THEME);
       const themeName = result[STORAGE_KEYS.THEME] || DEFAULT_THEME;
-      applyTheme(themeName);
-      return themeName;
+      const resolvedThemeName = applyTheme(themeName);
+      return resolvedThemeName;
     }
   } catch (error) {
     console.error('Error loading theme:', error);
@@ -221,6 +150,7 @@ export function setupThemeSelector() {
   if (!selector) return;
   
   // Populate options
+  selector.innerHTML = '';
   Object.keys(THEMES).forEach(key => {
     const option = document.createElement('option');
     option.value = key;
@@ -230,13 +160,13 @@ export function setupThemeSelector() {
   
   // Set current theme
   const currentTheme = document.body.dataset.theme || DEFAULT_THEME;
-  selector.value = currentTheme;
+  selector.value = THEMES[currentTheme] ? currentTheme : DEFAULT_THEME;
   
   // Handle changes
   selector.addEventListener('change', async (e) => {
     const themeName = e.target.value;
-    applyTheme(themeName);
-    await saveTheme(themeName);
+    const resolvedThemeName = applyTheme(themeName);
+    await saveTheme(resolvedThemeName);
   });
 }
 

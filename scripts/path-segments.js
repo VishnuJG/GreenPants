@@ -45,7 +45,8 @@ export function renderPathSegments() {
     input.draggable = false; // Prevent input from being draggable
     if (index === 0) {
       input.readOnly = true;
-      input.style.background = '#e9ecef';
+      input.style.background = 'var(--surface-2)';
+      input.style.color = 'var(--text-muted)';
       input.style.flex = '0.15';
       input.style.textAlign = 'center';
       input.style.cursor = 'not-allowed';
