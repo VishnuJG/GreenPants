@@ -15,7 +15,7 @@ import { initTheme } from './theme-manager.js';
 // Initialize popup when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   // Check if we're on the popup page (not response viewer)
-  const isPopup = document.getElementById('tabSelector') !== null;
+  const isPopup = document.getElementById('tabNav') !== null;
   
   if (isPopup) {
     await initTheme(); // Initialize theme first for better UX

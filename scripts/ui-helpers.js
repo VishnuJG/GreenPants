@@ -3,53 +3,118 @@
 const TAB_USAGE_KEY = 'tabUsageStats';
 const LAST_TAB_KEY = 'lastActiveTab';
 
-// Setup tab navigation with dropdown
-export async function setupTabs() {
-  const tabSelector = document.getElementById('tabSelector');
-  const tabContents = document.querySelectorAll('.tab-content');
-  
-  if (!tabSelector) return;
+const TAB_ORDER = ['url-builder', 'request', 'timestamps', 'settings'];
+const TAB_SHORTCUTS = {
+  '1': 'url-builder',
+  '2': 'request',
+  '3': 'timestamps',
+  '4': 'settings',
+};
 
-  // Load usage stats and last active tab
-  const stats = await getTabUsageStats();
-  const lastTab = await getLastActiveTab();
-  
-  // Sort tabs by usage
-  sortTabsByUsage(tabSelector, stats);
-  
-  // Set initial tab
-  if (lastTab) {
-    tabSelector.value = lastTab;
-    showTab(lastTab);
-  } else {
-    showTab(tabSelector.value);
+const isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent);
+
+function getShortcutLabel(index) {
+  return isMac ? `^+${index} OR (CTRL+${index})` : `Alt+${index}`;
+}
+
+function matchesTabShortcut(event, index) {
+  const digit = String(index);
+  const isDigitKey = event.key === digit || event.code === `Digit${digit}`;
+  if (!isDigitKey) {
+    return false;
   }
 
-  // Handle tab changes
-  tabSelector.addEventListener('change', async (e) => {
-    const tabName = e.target.value;
-    showTab(tabName);
-    
-    // Track usage
-    await incrementTabUsage(tabName);
-    await saveLastActiveTab(tabName);
-    
-    // Re-sort tabs after usage update
-    const updatedStats = await getTabUsageStats();
-    sortTabsByUsage(tabSelector, updatedStats);
-  });
-  
-  function showTab(tabName) {
-    // Hide all tabs
-    tabContents.forEach(content => {
-      content.classList.remove('active');
-    });
-    
-    // Show selected tab
-    const targetTab = document.getElementById(`${tabName}-tab`);
-    if (targetTab) {
-      targetTab.classList.add('active');
+  if (isMac) {
+    return event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
+  }
+
+  return event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+}
+
+function applyShortcutLabels(tabButtons) {
+  const tabTitles = {
+    'url-builder': 'URL Builder',
+    request: 'Headers & Body',
+    timestamps: 'Timestamps',
+    settings: 'Settings',
+  };
+
+  tabButtons.forEach(button => {
+    const index = button.dataset.shortcut;
+    if (!index) {
+      return;
     }
+
+    const label = getShortcutLabel(index);
+    const shortcutEl = button.querySelector('.tab-shortcut');
+    if (shortcutEl) {
+      shortcutEl.textContent = label;
+    }
+
+    const tabLabel = tabTitles[button.dataset.tab] || button.dataset.tab;
+    button.title = `${tabLabel} (${label})`;
+  });
+}
+
+function normalizeTabName(tabName) {
+  if (tabName === 'advanced' || tabName === 'history') {
+    return 'settings';
+  }
+  return TAB_ORDER.includes(tabName) ? tabName : TAB_ORDER[0];
+}
+
+// Setup tab navigation with top-level buttons
+export async function setupTabs() {
+  const tabNav = document.getElementById('tabNav');
+  const tabButtons = document.querySelectorAll('.tab-btn[data-tab]');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  if (!tabNav || tabButtons.length === 0) return;
+
+  applyShortcutLabels(tabButtons);
+
+  const lastTab = normalizeTabName(await getLastActiveTab());
+  activateTab(lastTab, tabButtons, tabContents);
+
+  tabButtons.forEach(button => {
+    button.addEventListener('click', async () => {
+      const tabName = button.dataset.tab;
+      await switchTab(tabName, tabButtons, tabContents);
+    });
+  });
+
+  document.addEventListener('keydown', async (e) => {
+    for (const [index, tabName] of Object.entries(TAB_SHORTCUTS)) {
+      if (!matchesTabShortcut(e, index)) {
+        continue;
+      }
+
+      e.preventDefault();
+      await switchTab(tabName, tabButtons, tabContents);
+      return;
+    }
+  });
+}
+
+async function switchTab(tabName, tabButtons, tabContents) {
+  const normalizedTab = normalizeTabName(tabName);
+  activateTab(normalizedTab, tabButtons, tabContents);
+  await incrementTabUsage(normalizedTab);
+  await saveLastActiveTab(normalizedTab);
+}
+
+function activateTab(tabName, tabButtons, tabContents) {
+  tabButtons.forEach(button => {
+    button.classList.toggle('active', button.dataset.tab === tabName);
+  });
+
+  tabContents.forEach(content => {
+    content.classList.remove('active');
+  });
+
+  const targetTab = document.getElementById(`${tabName}-tab`);
+  if (targetTab) {
+    targetTab.classList.add('active');
   }
 }
 
@@ -95,34 +160,6 @@ async function incrementTabUsage(tabName) {
   }
 }
 
-// Sort tabs by usage frequency
-function sortTabsByUsage(selector, stats) {
-  const options = Array.from(selector.options);
-  const currentValue = selector.value;
-  
-  // Sort options by usage count (descending)
-  options.sort((a, b) => {
-    const usageA = stats[a.value] || 0;
-    const usageB = stats[b.value] || 0;
-    return usageB - usageA;
-  });
-  
-  // Clear and re-add options
-  selector.innerHTML = '';
-  options.forEach(option => {
-    const count = stats[option.value] || 0;
-    // Add usage count to label if > 0
-    if (count > 0) {
-      const originalText = option.textContent.split(' (')[0]; // Remove old count if any
-      option.textContent = `${originalText} (${count})`;
-    }
-    selector.appendChild(option);
-  });
-  
-  // Restore selected value
-  selector.value = currentValue;
-}
-
 // Setup collapsible sections
 export function setupCollapsibles() {
   const suggestionsHeaderPaths = document.getElementById('suggestionsHeaderPaths');
@@ -156,4 +193,3 @@ export function setupCollapsibles() {
     });
   });
 }
-
