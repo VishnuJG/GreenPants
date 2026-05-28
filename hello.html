@@ -5,23 +5,37 @@
   <title>URL Path & Params Editor</title>
   <style>
     :root {
-      /* Default theme (Ocean) - will be overridden by JS */
-      --primary: #0ea5e9;
-      --primary-dark: #0284c7;
-      --secondary: #38bdf8;
-      --accent: #7dd3fc;
-      --gradient-start: #0ea5e9;
-      --gradient-end: #06b6d4;
-      --success: #34d399;
-      --success-dark: #10b981;
-      --error: #f87171;
-      --error-dark: #ef4444;
-      --warning: #fbbf24;
-      --warning-dark: #f59e0b;
-      --info: #60a5fa;
-      --info-dark: #3b82f6;
-      --bg-gradient-start: #22d3ee;
-      --bg-gradient-end: #0ea5e9;
+      /* Default theme (Light) — overridden by theme-manager.js */
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary: #3b82f6;
+      --accent: #93c5fd;
+      --gradient-start: #2563eb;
+      --gradient-end: #1e40af;
+      --success: #16a34a;
+      --success-dark: #15803d;
+      --error: #dc2626;
+      --error-dark: #b91c1c;
+      --warning: #d97706;
+      --warning-dark: #b45309;
+      --info: #0284c7;
+      --info-dark: #0369a1;
+      --bg-gradient-start: #f8fafc;
+      --bg-gradient-end: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --surface: #ffffff;
+      --surface-elevated: #ffffff;
+      --surface-muted: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --input-bg: #ffffff;
+      --chrome-bg: rgba(255, 255, 255, 0.65);
+      --chrome-border: rgba(255, 255, 255, 0.85);
+      --chrome-text: #0f172a;
+      --chrome-control-bg: rgba(255, 255, 255, 0.95);
+      --shadow: rgba(15, 23, 42, 0.08);
     }
 
     * {
@@ -34,8 +48,8 @@
       padding: 0;
       margin: 0;
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-      color: #1e293b;
+      background: linear-gradient(145deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      color: var(--text-primary);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -54,49 +68,52 @@
       align-items: center;
       justify-content: flex-end;
       padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
+      background: var(--chrome-bg);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-bottom: 1px solid var(--chrome-border);
       gap: 8px;
     }
 
     .theme-bar label {
       font-size: 11px;
       font-weight: 600;
-      color: white;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      color: var(--chrome-text);
+      letter-spacing: 0.02em;
     }
 
     #themeSelector {
       padding: 6px 12px;
-      border: 2px solid rgba(255, 255, 255, 0.4);
-      border-radius: 20px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
       font-size: 12px;
       font-weight: 600;
-      background: rgba(255, 255, 255, 0.95);
-      color: var(--primary-dark);
+      background: var(--chrome-control-bg);
+      color: var(--text-primary);
       cursor: pointer;
       transition: all 0.2s;
-      min-width: 160px;
+      min-width: 140px;
     }
 
     #themeSelector:hover {
-      background: white;
-      border-color: rgba(255, 255, 255, 0.8);
-      transform: scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px var(--shadow);
     }
 
     #themeSelector:focus {
       outline: none;
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
     }
 
     .header {
       text-align: center;
       padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.98);
-      backdrop-filter: blur(10px);
-      border-bottom: 3px solid var(--primary);
+      background: var(--surface-elevated);
+      backdrop-filter: blur(12px) saturate(1.2);
+      -webkit-backdrop-filter: blur(12px) saturate(1.2);
+      border-bottom: 2px solid var(--primary);
       margin-bottom: 16px;
+      box-shadow: 0 1px 0 var(--chrome-border);
     }
 
     .header h1 {
@@ -113,13 +130,13 @@
     .header p {
       margin: 4px 0 0 0;
       font-size: 12px;
-      color: #64748b;
+      color: var(--text-muted);
     }
     
     h2 {
       margin: 0 0 8px 0;
       font-size: 13px;
-      color: #1e293b;
+      color: var(--text-primary);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -138,56 +155,57 @@
 
     /* Tab Navigation */
     .tab-nav {
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-      padding: 12px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 12px;
+      background: var(--chrome-bg);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-bottom: 1px solid var(--chrome-border);
     }
 
-    .tab-selector {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 10px;
-      font-size: 14px;
+    .tab-btn {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 8px 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      font-size: 11px;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.98);
-      color: var(--primary-dark);
+      background: var(--chrome-control-bg);
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.15s;
+      white-space: nowrap;
+      text-align: center;
     }
 
-    .tab-selector:hover {
-      background: white;
-      border-color: rgba(255, 255, 255, 0.8);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    .tab-btn:hover {
+      background: var(--surface-elevated);
+      border-color: var(--primary);
+      color: var(--primary-dark);
       transform: translateY(-1px);
     }
 
-    .tab-selector:focus {
+    .tab-btn:focus-visible {
       outline: none;
-      background: white;
-      border-color: white;
-      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
     }
 
-    .tab-selector option {
-      background: white;
-      color: #1e293b;
-      padding: 10px;
-      font-weight: 600;
+    .tab-btn.active {
+      background: var(--surface-elevated);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+      box-shadow: 0 2px 8px var(--shadow);
     }
 
-    .tab-usage-badge {
-      background: var(--primary);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 10px;
+    .tab-btn .tab-shortcut {
+      display: block;
       font-size: 9px;
-      margin-left: 6px;
-      font-weight: 700;
+      font-weight: 600;
+      opacity: 0.65;
+      margin-top: 2px;
     }
 
     .tab-content {
@@ -199,21 +217,22 @@
     }
     
     .section {
-      background: white;
+      background: var(--surface);
       border-radius: 12px;
       padding: 14px;
       margin-bottom: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border: 1px solid rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 12px var(--shadow);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
     }
     
     .url-display {
-      background: #f8fafc;
+      background: var(--surface-muted);
       padding: 14px 16px;
       border-radius: 10px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       font-size: 14px;
-      color: #0f172a;
+      color: var(--text-primary);
       font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       font-weight: 500;
       transition: all 0.2s;
@@ -228,16 +247,16 @@
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
-      background: white;
+      background: var(--input-bg);
     }
 
     .url-display:hover {
-      border-color: #cbd5e1;
-      background: white;
+      border-color: var(--border-strong);
+      background: var(--input-bg);
     }
 
     .url-display::placeholder {
-      color: #94a3b8;
+      color: var(--text-muted);
       font-style: italic;
     }
     
@@ -249,12 +268,13 @@
     
     .protocol-host input {
       padding: 10px 14px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--text-primary);
     }
 
     .protocol-host input:first-child {
@@ -297,12 +317,13 @@
     .path-segment input, .param-row input {
       flex: 1;
       padding: 9px 12px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--text-primary);
     }
 
     .path-segment input:focus, .param-row input:focus {
@@ -344,13 +365,13 @@
     }
 
     .btn-remove:disabled {
-      background: #e2e8f0;
+      background: var(--border);
       cursor: not-allowed;
       box-shadow: none;
     }
 
     .drag-handle {
-      color: #94a3b8;
+      color: var(--text-muted);
       cursor: grab;
       padding: 4px;
       font-size: 18px;
@@ -421,18 +442,18 @@
     }
     
     .btn-secondary {
-      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+      background: linear-gradient(135deg, var(--text-muted) 0%, var(--text-secondary) 100%);
       color: white;
       width: 100%;
       padding: 12px;
       font-size: 13px;
       margin-top: 10px;
-      box-shadow: 0 2px 4px rgba(71, 85, 105, 0.3);
+      box-shadow: 0 2px 4px var(--shadow);
     }
     
     .btn-secondary:hover {
-      background: linear-gradient(135deg, #475569 0%, #334155 100%);
-      box-shadow: 0 4px 8px rgba(71, 85, 105, 0.4);
+      background: linear-gradient(135deg, var(--text-secondary) 0%, var(--text-primary) 100%);
+      box-shadow: 0 4px 8px var(--shadow);
       transform: translateY(-1px);
     }
 
@@ -442,18 +463,18 @@
     
     .empty-state {
       text-align: center;
-      color: #94a3b8;
+      color: var(--text-muted);
       font-size: 13px;
       padding: 16px;
       font-style: italic;
-      background: #f8fafc;
+      background: var(--surface-muted);
       border-radius: 10px;
-      border: 2px dashed #e2e8f0;
+      border: 1px dashed var(--border-strong);
     }
     
     .label {
       font-size: 11px;
-      color: #64748b;
+      color: var(--text-muted);
       margin-bottom: 8px;
       font-weight: 600;
       text-transform: uppercase;
@@ -471,12 +492,12 @@
     }
 
     #pathSegments::-webkit-scrollbar-track, #queryParams::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: var(--surface-muted);
       border-radius: 10px;
     }
 
     #pathSegments::-webkit-scrollbar-thumb, #queryParams::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: var(--border-strong);
       border-radius: 10px;
     }
 
@@ -487,12 +508,13 @@
     .hash-section input {
       width: 100%;
       padding: 10px 14px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--text-primary);
     }
 
     .hash-section input:focus {
@@ -502,13 +524,14 @@
     }
 
     .actions-section {
-      background: rgba(255, 255, 255, 0.98);
+      background: var(--surface-elevated);
+      backdrop-filter: blur(12px);
       padding: 8px;
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 -4px 20px var(--shadow);
       display: flex;
       gap: 6px;
       z-index: 1000;
@@ -525,11 +548,11 @@
     }
 
     .history-item {
-      background: #f8fafc;
+      background: var(--surface-muted);
       padding: 10px 12px;
       border-radius: 10px;
       margin-bottom: 8px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       transition: all 0.2s;
       cursor: pointer;
       font-size: 12px;
@@ -541,10 +564,10 @@
     }
 
     .history-item:hover {
-      background: #f1f5f9;
+      background: var(--input-bg);
       border-color: var(--primary);
       transform: translateX(4px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 12px var(--shadow);
     }
 
     .history-item:hover .history-url {
@@ -557,7 +580,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #1e293b;
+      color: var(--text-primary);
     }
 
     .history-badge {
@@ -586,12 +609,12 @@
     }
 
     .history-container::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: var(--surface-muted);
       border-radius: 10px;
     }
 
     .history-container::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: var(--border-strong);
       border-radius: 10px;
     }
 
@@ -607,15 +630,15 @@
     }
 
     .chip {
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      background: var(--surface-muted);
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 11px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
-      border: 2px solid #cbd5e1;
+      border: 1px solid var(--border-strong);
       cursor: pointer;
       transition: all 0.2s;
-      color: #1e293b;
+      color: var(--text-primary);
       font-weight: 500;
     }
 
@@ -701,9 +724,9 @@
 
     .method-btn {
       padding: 10px 16px;
-      border: 2px solid #e2e8f0;
-      background: white;
-      color: #475569;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-secondary);
       font-weight: 700;
       font-size: 12px;
       border-radius: 10px;
@@ -715,7 +738,7 @@
 
     .method-btn:hover {
       border-color: var(--primary);
-      background: #f8fafc;
+      background: var(--surface-muted);
     }
 
     .method-btn.active {
@@ -759,12 +782,13 @@
     .header-row input {
       flex: 1;
       padding: 9px 12px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       transition: all 0.2s;
-      background: white;
+      background: var(--input-bg);
+      color: var(--text-primary);
     }
 
     .header-row input:first-child {
@@ -786,9 +810,9 @@
 
     .body-type-btn {
       padding: 6px 12px;
-      border: 2px solid #e2e8f0;
-      background: white;
-      color: #475569;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-secondary);
       font-weight: 600;
       font-size: 11px;
       border-radius: 8px;
@@ -799,7 +823,7 @@
 
     .body-type-btn:hover {
       border-color: var(--primary);
-      background: #f8fafc;
+      background: var(--surface-muted);
     }
 
     .body-type-btn.active {
@@ -813,12 +837,13 @@
       width: 100%;
       min-height: 120px;
       padding: 12px;
-      border: 2px solid #e2e8f0;
+      border: 1px solid var(--border);
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
       resize: vertical;
-      background: white;
+      background: var(--input-bg);
+      color: var(--text-primary);
       transition: all 0.2s;
     }
 
@@ -907,30 +932,53 @@
     }
 
     .btn-test:disabled {
-      background: #e2e8f0;
+      background: var(--border);
       cursor: not-allowed;
       box-shadow: none;
       transform: none;
+    }
+
+    .theme-input,
+    select.theme-input {
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text-primary);
+    }
+
+    .theme-input:focus,
+    select.theme-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
     }
   </style>
 </head>
 <body>
     <!-- Theme Selector Bar -->
     <div class="theme-bar">
-      <label for="themeSelector">🎨 Theme:</label>
+      <label for="themeSelector">Theme</label>
       <select id="themeSelector"></select>
     </div>
 
     <!-- Tab Navigation -->
-    <div class="tab-nav">
-      <select class="tab-selector" id="tabSelector">
-        <option value="url-builder">🔗 URL Builder</option>
-        <option value="request">📋 Headers & Body</option>
-        <option value="timestamps">📅 Timestamps</option>
-        <option value="advanced">🔧 Advanced</option>
-        <option value="history">📜 History</option>
-      </select>
-    </div>
+    <nav class="tab-nav" id="tabNav" aria-label="Section navigation">
+      <button type="button" class="tab-btn active" data-tab="url-builder" data-shortcut="1">
+        🔗 URL Builder
+        <span class="tab-shortcut"></span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="request" data-shortcut="2">
+        📋 Headers & Body
+        <span class="tab-shortcut"></span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="timestamps" data-shortcut="3">
+        📅 Timestamps
+        <span class="tab-shortcut"></span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="settings" data-shortcut="4">
+        ⚙️ Settings
+        <span class="tab-shortcut"></span>
+      </button>
+    </nav>
 
    <div class="container">
     
@@ -1060,7 +1108,7 @@
 
         <div style="margin-top: 16px;">
           <div class="label">Display Format</div>
-          <select id="timestampFormat" style="width: 100%; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px; background: white; cursor: pointer; transition: all 0.2s;">
+          <select id="timestampFormat" class="theme-input" style="width: 100%; padding: 10px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s;">
             <option value="iso8601">ISO 8601 (2025-11-27T10:30:00.000Z)</option>
             <option value="rfc2822">RFC 2822 (Wed, 27 Nov 2025 10:30:00 GMT)</option>
             <option value="custom">Custom (Nov 27, 2025, 10:30:00 AM)</option>
@@ -1088,15 +1136,15 @@
       </div>
     </div>
 
-    <!-- Advanced Tab -->
-    <div class="tab-content" id="advanced-tab">
-      <div class="section url-section">
-        <div class="collapsible-header" data-url-section="advanced">
+    <!-- Settings Tab (Advanced + History) -->
+    <div class="tab-content" id="settings-tab">
+      <div class="section url-section collapsed">
+        <div class="collapsible-header" data-url-section="settings">
           <h2>🌐 Current URL</h2>
-          <span class="collapse-icon">▼</span>
+          <span class="collapse-icon collapsed">▼</span>
         </div>
         <div class="url-display-content">
-          <textarea class="url-display" data-url-field="advanced" placeholder="Loading..." rows="2"></textarea>
+          <textarea class="url-display" data-url-field="settings" placeholder="Loading..." rows="2"></textarea>
         </div>
       </div>
 
@@ -1113,19 +1161,6 @@
         <h2>Hash/Fragment</h2>
         <div class="hash-section">
           <input type="text" id="hash" placeholder="section-name (without #)">
-        </div>
-      </div>
-    </div>
-
-    <!-- History Tab -->
-    <div class="tab-content" id="history-tab">
-      <div class="section url-section collapsed">
-        <div class="collapsible-header" data-url-section="history">
-          <h2>🌐 Current URL</h2>
-          <span class="collapse-icon collapsed">▼</span>
-        </div>
-        <div class="url-display-content">
-          <textarea class="url-display" data-url-field="history" placeholder="Loading..." rows="2"></textarea>
         </div>
       </div>
 
