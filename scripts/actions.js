@@ -2,6 +2,7 @@
 
 import { buildUrl } from './url-manager.js';
 import { saveUrlToHistory, savePathsAndParams, loadHistory } from './storage.js';
+import { refreshAutocompleteData } from './autocomplete.js';
 
 // Apply the new URL and navigate
 export async function applyUrl() {
@@ -16,6 +17,7 @@ export async function applyUrl() {
     
     // Save path segments and params
     await savePathsAndParams();
+    await refreshAutocompleteData();
     
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     await chrome.tabs.update(tab.id, { url: newUrl });
@@ -41,6 +43,7 @@ export async function copyUrl() {
     
     // Save path segments and params
     await savePathsAndParams();
+    await refreshAutocompleteData();
     
     // Visual feedback
     const btn = document.getElementById('copyUrl');

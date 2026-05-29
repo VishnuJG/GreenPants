@@ -3,7 +3,8 @@
 import { loadCurrentUrl, updatePreview, parseUrlFromField } from './url-manager.js';
 import { addPathSegment } from './path-segments.js';
 import { addQueryParam } from './query-params.js';
-import { loadHistory, loadSuggestions, clearHistory, clearSuggestions } from './storage.js';
+import { loadHistory, clearHistory } from './storage.js';
+import { initAutocomplete, refreshAutocompleteData, isAutocompleteOpen } from './autocomplete.js';
 import { applyUrl, copyUrl } from './actions.js';
 import { setupTabs, setupCollapsibles } from './ui-helpers.js';
 import { loadTimestampSettings, setupTimestampListeners } from './timestamp-settings.js';
@@ -23,7 +24,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupCollapsibles();
     await loadCurrentUrl();
     await loadHistory();
-    await loadSuggestions();
+    await refreshAutocompleteData();
+    initAutocomplete();
     await loadTimestampSettings();
     setupEventListeners();
     setupTimestampListeners();
@@ -47,11 +49,13 @@ function setupEventListeners() {
   
   // History buttons
   document.getElementById('clearHistory').addEventListener('click', clearHistory);
-  document.getElementById('clearSuggestions').addEventListener('click', clearSuggestions);
   
   // Global Enter key handler - triggers Navigate button
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
+      if (isAutocompleteOpen()) {
+        return;
+      }
       // Don't trigger if user is typing in textarea (allow multi-line)
       if (e.target.tagName === 'TEXTAREA') {
         return;

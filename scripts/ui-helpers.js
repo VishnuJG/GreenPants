@@ -162,25 +162,6 @@ async function incrementTabUsage(tabName) {
 
 // Setup collapsible sections
 export function setupCollapsibles() {
-  const suggestionsHeaderPaths = document.getElementById('suggestionsHeaderPaths');
-  const suggestionsContentPaths = document.getElementById('suggestionsContentPaths');
-  const suggestionsHeaderParams = document.getElementById('suggestionsHeaderParams');
-  const suggestionsContentParams = document.getElementById('suggestionsContentParams');
-  
-  if (suggestionsHeaderPaths && suggestionsContentPaths) {
-    suggestionsHeaderPaths.addEventListener('click', () => {
-      suggestionsContentPaths.classList.toggle('collapsed');
-      suggestionsHeaderPaths.querySelector('.collapse-icon').classList.toggle('collapsed');
-    });
-  }
-  
-  if (suggestionsHeaderParams && suggestionsContentParams) {
-    suggestionsHeaderParams.addEventListener('click', () => {
-      suggestionsContentParams.classList.toggle('collapsed');
-      suggestionsHeaderParams.querySelector('.collapse-icon').classList.toggle('collapsed');
-    });
-  }
-  
   // Setup URL section collapsibles
   const urlSectionHeaders = document.querySelectorAll('[data-url-section]');
   urlSectionHeaders.forEach(header => {

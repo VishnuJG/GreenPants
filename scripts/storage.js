@@ -2,8 +2,6 @@
 
 import { STORAGE_KEYS, MAX_HISTORY_ITEMS, MAX_SUGGESTIONS } from './constants.js';
 import { loadUrlIntoEditor } from './url-manager.js';
-import { addPathSegmentWithValue } from './path-segments.js';
-import { addQueryParamWithKey } from './query-params.js';
 
 // Check if storage API is available
 export function isStorageAvailable() {
@@ -72,21 +70,36 @@ export async function savePathsAndParams() {
     const paramContainer = document.getElementById('queryParams');
     const paramRows = paramContainer.querySelectorAll('.param-row');
     const params = [];
-    
+
+    // Load existing
+    const result = await chrome.storage.local.get([
+      STORAGE_KEYS.PATH_SEGMENTS,
+      STORAGE_KEYS.QUERY_PARAMS,
+      STORAGE_KEYS.QUERY_PARAM_VALUES,
+    ]);
+    let savedPaths = result[STORAGE_KEYS.PATH_SEGMENTS] || [];
+    let savedParams = result[STORAGE_KEYS.QUERY_PARAMS] || [];
+    let savedParamValues = result[STORAGE_KEYS.QUERY_PARAM_VALUES] || {};
+
     paramRows.forEach(row => {
       const keyInput = row.querySelector('[data-type="key"]');
       const valueInput = row.querySelector('[data-type="value"]');
       const key = keyInput.value.trim();
-      
+      const value = valueInput.value.trim();
+
       if (key) {
         params.push(key);
       }
+
+      if (key && value) {
+        if (!savedParamValues[key]) {
+          savedParamValues[key] = [];
+        }
+        savedParamValues[key] = savedParamValues[key].filter(v => v !== value);
+        savedParamValues[key].unshift(value);
+        savedParamValues[key] = savedParamValues[key].slice(0, MAX_SUGGESTIONS);
+      }
     });
-    
-    // Load existing
-    const result = await chrome.storage.local.get([STORAGE_KEYS.PATH_SEGMENTS, STORAGE_KEYS.QUERY_PARAMS]);
-    let savedPaths = result[STORAGE_KEYS.PATH_SEGMENTS] || [];
-    let savedParams = result[STORAGE_KEYS.QUERY_PARAMS] || [];
     
     // Add new paths
     paths.forEach(path => {
@@ -109,7 +122,8 @@ export async function savePathsAndParams() {
     // Save
     await chrome.storage.local.set({
       [STORAGE_KEYS.PATH_SEGMENTS]: savedPaths,
-      [STORAGE_KEYS.QUERY_PARAMS]: savedParams
+      [STORAGE_KEYS.QUERY_PARAMS]: savedParams,
+      [STORAGE_KEYS.QUERY_PARAM_VALUES]: savedParamValues,
     });
   } catch (error) {
     console.error('Error saving paths and params:', error);
@@ -172,77 +186,6 @@ export async function loadHistory() {
   }
 }
 
-// Load suggestions (path segments and params)
-export async function loadSuggestions() {
-  const pathContainer = document.getElementById('recentPaths');
-  const paramContainer = document.getElementById('recentParams');
-  
-  if (!isStorageAvailable()) {
-    pathContainer.innerHTML = '';
-    const errorState1 = document.createElement('div');
-    errorState1.className = 'empty-state';
-    errorState1.textContent = '⚠️ Please reload the extension';
-    errorState1.style.color = '#e53e3e';
-    pathContainer.appendChild(errorState1);
-    
-    paramContainer.innerHTML = '';
-    const errorState2 = document.createElement('div');
-    errorState2.className = 'empty-state';
-    errorState2.textContent = '⚠️ Please reload the extension';
-    errorState2.style.color = '#e53e3e';
-    paramContainer.appendChild(errorState2);
-    return;
-  }
-  
-  try {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.PATH_SEGMENTS, STORAGE_KEYS.QUERY_PARAMS]);
-    const paths = result[STORAGE_KEYS.PATH_SEGMENTS] || [];
-    const params = result[STORAGE_KEYS.QUERY_PARAMS] || [];
-    
-    // Render path chips
-    pathContainer.innerHTML = '';
-    
-    if (paths.length === 0) {
-      const emptyState = document.createElement('div');
-      emptyState.className = 'empty-state';
-      emptyState.textContent = 'No recent paths';
-      pathContainer.appendChild(emptyState);
-    } else {
-      paths.forEach(path => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = path;
-        chip.addEventListener('click', () => {
-          addPathSegmentWithValue(path);
-        });
-        pathContainer.appendChild(chip);
-      });
-    }
-    
-    // Render param chips
-    paramContainer.innerHTML = '';
-    
-    if (params.length === 0) {
-      const emptyState = document.createElement('div');
-      emptyState.className = 'empty-state';
-      emptyState.textContent = 'No recent parameters';
-      paramContainer.appendChild(emptyState);
-    } else {
-      params.forEach(param => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = param;
-        chip.addEventListener('click', () => {
-          addQueryParamWithKey(param);
-        });
-        paramContainer.appendChild(chip);
-      });
-    }
-  } catch (error) {
-    console.error('Error loading suggestions:', error);
-  }
-}
-
 // Clear history
 export async function clearHistory() {
   if (!isStorageAvailable()) {
@@ -253,22 +196,6 @@ export async function clearHistory() {
   if (confirm('Are you sure you want to clear all URL history?')) {
     await chrome.storage.local.set({ [STORAGE_KEYS.URL_HISTORY]: [] });
     await loadHistory();
-  }
-}
-
-// Clear suggestions
-export async function clearSuggestions() {
-  if (!isStorageAvailable()) {
-    alert('Storage API not available. Please reload the extension.');
-    return;
-  }
-  
-  if (confirm('Are you sure you want to clear all suggestions?')) {
-    await chrome.storage.local.set({
-      [STORAGE_KEYS.PATH_SEGMENTS]: [],
-      [STORAGE_KEYS.QUERY_PARAMS]: []
-    });
-    await loadSuggestions();
   }
 }
 

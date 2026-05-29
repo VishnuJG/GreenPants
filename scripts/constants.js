@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   URL_HISTORY: 'urlHistory',
   PATH_SEGMENTS: 'pathSegments',
   QUERY_PARAMS: 'queryParams',
+  QUERY_PARAM_VALUES: 'queryParamValues',
   THEME: 'selectedTheme'
 };
 

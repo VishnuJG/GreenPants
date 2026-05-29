@@ -702,6 +702,32 @@
       max-height: 0;
     }
 
+    .autocomplete-dropdown {
+      position: fixed;
+      z-index: 10000;
+      max-height: 180px;
+      overflow-y: auto;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .autocomplete-item {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: background 0.15s;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.active {
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      color: var(--primary);
+    }
+
     /* URL Display in Tabs */
     .url-section {
       margin-bottom: 12px;
@@ -833,24 +859,149 @@
     }
 
     /* Body Editor */
+    .body-editor-container {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input-bg);
+      transition: all 0.2s;
+    }
+
+    .body-editor-container:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    .body-editor-container.invalid {
+      border-color: var(--error);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--error) 12%, transparent);
+    }
+
+    .body-editor-backdrop {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: hidden;
+      pointer-events: none;
+      color: var(--text-primary);
+      background: transparent;
+    }
+
+    .body-editor-backdrop .json-error-highlight {
+      background: color-mix(in srgb, var(--error) 38%, transparent);
+      color: var(--error);
+      border-radius: 2px;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
     .body-editor {
       width: 100%;
       min-height: 120px;
       padding: 12px;
-      border: 1px solid var(--border);
+      border: none;
       border-radius: 10px;
       font-size: 13px;
       font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+      line-height: 1.5;
       resize: vertical;
-      background: var(--input-bg);
+      background: transparent;
       color: var(--text-primary);
-      transition: all 0.2s;
+      transition: color 0.2s;
+      position: relative;
+      z-index: 1;
+      display: block;
+    }
+
+    .body-editor-container.json-highlight-mode .body-editor {
+      color: transparent;
+      caret-color: var(--text-primary);
+    }
+
+    .body-editor-container:not(.json-highlight-mode) .body-editor-backdrop {
+      display: none;
     }
 
     .body-editor:focus {
       outline: none;
+    }
+
+    .body-editor.expanded {
+      min-height: 380px;
+    }
+
+    .body-editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .body-editor-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .body-editor-btn {
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-elevated);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .body-editor-btn:hover {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+      color: var(--primary);
+      background: var(--surface-muted);
+    }
+
+    .body-editor-btn.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: color-mix(in srgb, var(--primary) 10%, transparent);
+    }
+
+    .json-status {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .json-status.valid {
+      color: var(--success);
+      background: color-mix(in srgb, var(--success) 12%, transparent);
+    }
+
+    .json-status.invalid {
+      color: var(--error);
+      background: color-mix(in srgb, var(--error) 10%, transparent);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .json-status.empty {
+      color: var(--text-muted);
+      background: var(--surface-muted);
     }
 
     /* Response Viewer */
@@ -996,7 +1147,7 @@
 
       <div class="section">
         <h2>Path Segments</h2>
-        <div class="label">Drag to reorder • Click 🗑️ to remove</div>
+        <div class="label">Drag to reorder • Click 🗑️ to remove • suggestions appear as you type</div>
         <div id="pathSegments"></div>
         <button class="btn btn-add" id="addPath">+ Add Path Segment</button>
       </div>
@@ -1005,31 +1156,9 @@
 
       <div class="section">
         <h2>Query Parameters</h2>
-        <div class="label">Key-value pairs</div>
+        <div class="label">Key-value pairs • suggestions appear as you type</div>
         <div id="queryParams"></div>
         <button class="btn btn-add" id="addParam">+ Add Parameter</button>
-      </div>
-
-      <div class="section">
-        <div class="collapsible-header" id="suggestionsHeaderPaths">
-          <h2>💡 Recent Path Segments</h2>
-          <span class="collapse-icon">▼</span>
-        </div>
-        <div class="collapsible-content" id="suggestionsContentPaths">
-          <div class="chip-container" id="recentPaths"></div>
-          <div class="history-actions">
-            <button class="btn-clear" id="clearSuggestions">Clear Suggestions</button>
-          </div>
-        </div>
-      </div>
-      <div class="section">
-        <div class="collapsible-header" id="suggestionsHeaderParams">
-          <h2>💡 Recent Parameters</h2>
-          <span class="collapse-icon">▼</span>
-        </div>
-        <div class="collapsible-content" id="suggestionsContentParams">
-          <div class="chip-container" id="recentParams"></div>
-        </div>
       </div>
     </div>
 
@@ -1075,13 +1204,24 @@
         </div>
 
         <div id="bodyContent">
-          <textarea class="body-editor" id="bodyEditor" placeholder='{"key": "value"}'></textarea>
+          <div class="body-editor-toolbar" id="jsonToolbar" hidden>
+            <div class="body-editor-actions">
+              <button type="button" class="body-editor-btn" id="formatJson" title="Pretty-print with 2-space indent">Format</button>
+              <button type="button" class="body-editor-btn" id="minifyJson" title="Remove whitespace">Minify</button>
+              <button type="button" class="body-editor-btn" id="expandBody" title="Toggle larger editor">Expand</button>
+            </div>
+            <span class="json-status empty" id="jsonStatus">Empty</span>
+          </div>
+          <div class="body-editor-container" id="bodyEditorContainer">
+            <pre class="body-editor-backdrop" id="bodyEditorBackdrop" aria-hidden="true"></pre>
+            <textarea class="body-editor" id="bodyEditor" placeholder='{"key": "value"}' spellcheck="false"></textarea>
+          </div>
         </div>
 
-        <div style="margin-top: 12px; padding: 10px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #4299e1;">
-          <div style="font-weight: 600; color: #2d3748; margin-bottom: 6px; font-size: 11px;">💡 Tip:</div>
-          <p style="margin: 0; font-size: 11px; color: #4a5568; line-height: 1.5;">
-            For JSON, ensure proper formatting. For Form Data, use key=value pairs on separate lines.
+        <div style="margin-top: 12px; padding: 10px; background: var(--surface-muted); border-radius: 8px; border-left: 4px solid var(--primary);">
+          <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 6px; font-size: 11px;">💡 Tip:</div>
+          <p style="margin: 0; font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+            JSON mode supports Format/Minify and live validation. Tab inserts 2 spaces. For Form Data, use key=value pairs on separate lines.
           </p>
         </div>
       </div>
