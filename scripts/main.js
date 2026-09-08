@@ -2,15 +2,18 @@
 
 import { loadCurrentUrl, updatePreview, parseUrlFromField } from './url-manager.js';
 import { addPathSegment } from './path-segments.js';
-import { addQueryParam } from './query-params.js';
+import { addQueryParam, persistParamEditorState } from './query-params.js';
 import { loadHistory, clearHistory } from './storage.js';
 import { initAutocomplete, refreshAutocompleteData, isAutocompleteOpen } from './autocomplete.js';
-import { applyUrl, copyUrl } from './actions.js';
+import { applyUrl, copyUrl, openUrlInNewTab } from './actions.js';
 import { setupTabs, setupCollapsibles } from './ui-helpers.js';
 import { loadTimestampSettings, setupTimestampListeners } from './timestamp-settings.js';
 import { addHeader, loadHeaders } from './headers-manager.js';
 import { initBodyManager, setBody } from './body-manager.js';
 import { initHttpMethod, sendRequest } from './http-request.js';
+import { loadStorageLimitSettings, setupStorageLimitListeners } from './storage-settings.js';
+import { openJsonDiff } from './json-diff-launcher.js';
+import { openYamlDiff } from './yaml-diff-launcher.js';
 import { initTheme } from './theme-manager.js';
 
 // Initialize popup when DOM is loaded
@@ -24,14 +27,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupCollapsibles();
     await loadCurrentUrl();
     await loadHistory();
+    await loadStorageLimitSettings();
     await refreshAutocompleteData();
     initAutocomplete();
     await loadTimestampSettings();
     setupEventListeners();
+    setupStorageLimitListeners();
     setupTimestampListeners();
     initHttpMethod();
     initBodyManager();
     loadHeaders({}); // Initialize with one empty header row
+
+    window.addEventListener('pagehide', () => {
+      persistParamEditorState();
+    });
   }
 });
 
@@ -46,12 +55,40 @@ function setupEventListeners() {
   document.getElementById('applyUrl').addEventListener('click', applyUrl);
   document.getElementById('copyUrl').addEventListener('click', copyUrl);
   document.getElementById('sendRequest').addEventListener('click', sendRequest);
-  
+
+  document.getElementById('openJsonDiffTop')?.addEventListener('click', () => {
+    const bodyEditor = document.getElementById('bodyEditor');
+    openJsonDiff(bodyEditor?.value || '');
+  });
+
+  document.getElementById('openYamlDiffTop')?.addEventListener('click', () => {
+    openYamlDiff('');
+  });
+
   // History buttons
   document.getElementById('clearHistory').addEventListener('click', clearHistory);
   
   // Global Enter key handler - triggers Navigate button
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+      if (isAutocompleteOpen()) {
+        return;
+      }
+      if (e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      e.preventDefault();
+      if (e.target.tagName === 'INPUT') {
+        e.target.blur();
+        setTimeout(() => openUrlInNewTab(), 50);
+        return;
+      }
+
+      openUrlInNewTab();
+      return;
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       if (isAutocompleteOpen()) {
         return;

@@ -281,8 +281,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Initialize: load settings from storage
 chrome.storage.local.get(['timestampEnabled', 'timestampFormat'], (result) => {
-  // Enable by default if not explicitly set
-  isEnabled = result.timestampEnabled !== undefined ? result.timestampEnabled : true;
+  // Disabled by default — user must opt in
+  isEnabled = result.timestampEnabled === true;
   displayFormat = result.timestampFormat || 'iso8601';
   
   if (isEnabled) {

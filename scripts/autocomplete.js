@@ -147,7 +147,7 @@ function updateHighlight() {
 
 function renderDropdown(items) {
   suggestions = items;
-  highlightedIndex = items.length > 0 ? 0 : -1;
+  highlightedIndex = -1;
 
   if (items.length === 0) {
     closeDropdown();
@@ -160,9 +160,6 @@ function renderDropdown(items) {
   items.forEach((item, i) => {
     const el = document.createElement('div');
     el.className = 'autocomplete-item';
-    if (i === highlightedIndex) {
-      el.classList.add('active');
-    }
     el.textContent = item;
     el.dataset.index = String(i);
     dropdown.appendChild(el);
@@ -213,7 +210,9 @@ function handleAutocompleteKeydown(e) {
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     e.stopPropagation();
-    highlightedIndex = Math.min(highlightedIndex + 1, suggestions.length - 1);
+    highlightedIndex = highlightedIndex < 0
+      ? 0
+      : Math.min(highlightedIndex + 1, suggestions.length - 1);
     updateHighlight();
     return;
   }
@@ -221,15 +220,21 @@ function handleAutocompleteKeydown(e) {
   if (e.key === 'ArrowUp') {
     e.preventDefault();
     e.stopPropagation();
-    highlightedIndex = Math.max(highlightedIndex - 1, 0);
+    highlightedIndex = highlightedIndex < 0
+      ? suggestions.length - 1
+      : Math.max(highlightedIndex - 1, -1);
     updateHighlight();
     return;
   }
 
-  if (e.key === 'Enter' && highlightedIndex >= 0) {
-    e.preventDefault();
-    e.stopPropagation();
-    selectSuggestion(suggestions[highlightedIndex]);
+  if (e.key === 'Enter') {
+    if (highlightedIndex >= 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      selectSuggestion(suggestions[highlightedIndex]);
+    } else {
+      closeDropdown();
+    }
     return;
   }
 

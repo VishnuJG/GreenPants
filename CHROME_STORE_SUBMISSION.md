@@ -1,4 +1,4 @@
-# Chrome Web Store Submission Guide - Version 2.0
+# Chrome Web Store Submission Guide - Version 2.5
 
 ## Quick Copy-Paste Answers
 
@@ -77,46 +77,61 @@ You can also host it on GitHub Pages or any public URL and provide that link.
 ## Store Listing Tips
 
 ### Name
-Quick URL Editor
+URL Editor Pro
 
 ### Short Description (132 characters max)
-Full-featured API testing + URL editing. Test REST APIs with custom headers/bodies. All HTTP methods. Response viewer included.
+API testing + URL editing in one popup. JSON/YAML diff tools, param toggles, themes, custom headers, and a full-tab response viewer.
 
 ### Detailed Description Template
 ```
-🚀 Quick URL Editor - Version 2.0
+🚀 URL Editor Pro - Version 2.5
 
 The ultimate tool for developers! Combines powerful URL editing with complete API testing capabilities - all in your browser.
 
-✨ API TESTING FEATURES (NEW!):
+✨ API TESTING:
 • All HTTP Methods: GET, POST, PUT, DELETE, PATCH
 • Custom Headers: Authorization, API keys, Content-Type, etc.
-• Request Bodies: JSON (validated), Form Data, Raw Text
-• Response Viewer: Opens in full Chrome tab with formatted output
+• Request Bodies: JSON (live validation), Form Data, Raw Text, or None
+• JSON Editor: Format, minify, syntax highlighting, and expandable editor
+• Response Viewer: Opens in a full Chrome tab with formatted output
 • Status Indicators: Color-coded success/error badges
 • Request Timing: See response duration
 • Copy Buttons: One-click copy for headers and body
 • Tabbed Response: Body, Headers, and Raw views
 
-🔗 URL EDITING FEATURES:
+🔗 URL EDITING:
 • Smart URL Builder: Edit paths and query params in one tab
+• Inline Autocomplete: Suggestions for path segments, param keys, and values (arrow keys to select — no forced auto-fill)
+• Param Toggle: Disable query params temporarily without deleting them; re-enable anytime
+• Persistent Param State: Disabled params remembered per URL path across sessions
 • Drag & Drop: Reorder path segments visually
 • Protocol & Host: Full control over all URL components
 • Real-time Preview: URL updates as you type
 • Hash/Fragment: Edit URL anchors
-• Quick Suggestions: Recently used segments and parameters
+• Smart Suggestions: Learn from recently used segments and parameters
 
-🎯 SMART FEATURES (NEW!):
-• Tab Usage Tracking: Most-used tabs appear first
+🧰 DEVELOPER TOOLS (Full Chrome Tabs):
+• JSON Diff: Side-by-side compare with color-coded line diffs
+• JSON Diff History: Save, name, reload, rename, and delete comparisons
+• JSON Share & Export: Copy share links (extension users) or export/import .jsondiff.json files
+• YAML Tools: Compare two YAML files OR fix/format a single document
+• YAML Fix Mode: Repair common issues, validate syntax, convert JSON → YAML, import .yaml files
+• YAML History & Sharing: Same save/share/export workflow as JSON Diff
+• Quick Access: JSON Diff and YAML Diff buttons in the top bar — always one click away
+
+🎯 SMART FEATURES:
 • Last Tab Memory: Opens where you left off
-• Enter Key Navigation: Press Enter to navigate quickly
+• Keyboard Shortcuts: Alt+1–4 (Ctrl+1–4 on Mac) for quick tab switching
+• Enter to Navigate: Press Enter to apply the edited URL to the current tab
+• Shift+Enter: Open the edited URL in a new tab
+• Configurable Storage Limits: Adjust URL history and suggestion pool size in Settings
 • Collapsible Sections: Clean, organized interface
 • Timestamp Viewer: Convert Unix timestamps on any page
 
 🎨 PROFESSIONAL UI:
-• Modern gradient design with smooth animations
-• Dropdown tab selector for clean navigation
-• Green "Navigate" button with enter symbol
+• 5 Built-in Themes: Light, Dark, Golden, Silver, and Crystal
+• Theme-aware design across popup, response viewer, and diff tools
+• Top tab bar for fast section navigation
 • Color-coded HTTP method badges
 • Responsive layouts with proper text wrapping
 
@@ -125,26 +140,25 @@ The ultimate tool for developers! Combines powerful URL editing with complete AP
 • NO Data Collection: Zero tracking or analytics
 • NO External Servers: No data transmission
 • Open Source: Transparent, auditable code
-• No Dependencies: Pure JavaScript
+• Self-Contained: Pure JavaScript with a vendored offline YAML parser (no CDN calls)
 
 💡 USE CASES:
 • REST API Testing & Development
 • Quick API endpoint verification
 • Testing with custom authentication headers
-• JSON payload validation
+• JSON & YAML payload validation and comparison
 • URL manipulation for testing scenarios
 • Path and parameter experimentation
 • API documentation and debugging
 • Integration testing
-• Save and reuse API configurations
+• Config file diffing (JSON/YAML)
 
 🛠️ TECHNICAL DETAILS:
 • Manifest V3 (modern Chrome extensions)
 • Modular ES6 architecture
-• Zero external dependencies
 • Comprehensive error handling
-• Chrome Storage API for data
-• Dedicated response viewer tab
+• Chrome Storage API for history, suggestions, param state, and diff saves
+• Dedicated full-tab tools: response viewer, JSON diff, YAML diff
 
 📊 PERFECT FOR:
 • Backend Developers
@@ -156,10 +170,11 @@ The ultimate tool for developers! Combines powerful URL editing with complete AP
 • Anyone working with REST APIs
 
 🎁 BONUS FEATURES:
-• URL History: Track your API calls
-• Recent Suggestions: Quick parameter insertion
+• URL History: Track and reload past URLs (configurable limit)
+• Inline Autocomplete: Quick insertion from usage history (configurable pool size)
 • Timestamp Conversion: Unix to readable dates
 • Multiple Format Support: ISO 8601, RFC 2822, Custom
+• JSON/YAML Diff Shortcuts: Cmd/Ctrl+Enter to compare, Cmd/Ctrl+S to save
 
 Transform your API testing workflow! Say goodbye to Postman for quick tests and hello to instant, browser-integrated API testing.
 ```
@@ -169,16 +184,18 @@ Transform your API testing workflow! Say goodbye to Postman for quick tests and 
 #### Priority Screenshots:
 1. **API Testing in Action** - Headers & Body tab with POST request setup
 2. **Response Viewer** - Full tab showing formatted JSON response with status
-3. **URL Builder** - Combined paths and query params in one view
-4. **HTTP Method Selector** - All methods (GET, POST, PUT, DELETE, PATCH) visible
-5. **Smart Tab Dropdown** - Showing usage counts and sorted tabs
+3. **URL Builder** - Combined paths and query params with enable/disable toggles
+4. **JSON Diff & YAML Tools** - Side-by-side diff with saved comparison history
+5. **HTTP Method Selector** - All methods (GET, POST, PUT, DELETE, PATCH) visible
+6. **Theme Selector** - Showing Light, Dark, Golden, Silver, and Crystal themes
 
 #### Additional Screenshots:
-6. Timestamp viewer feature on a webpage
-7. History section with saved URLs
-8. Advanced tab with protocol/host editing
-9. Response viewer showing error handling (red status)
-10. Copy buttons and tabbed response interface
+7. YAML Fix mode — format/repair a single YAML document
+8. Timestamp viewer feature on a webpage
+9. History section with saved URLs and storage limit settings
+10. Advanced/Settings tab with protocol/host editing
+11. Response viewer showing error handling (red status)
+12. Top bar with JSON Diff and YAML Diff quick-launch buttons
 
 ### Promotional Images (Optional but Recommended)
 - **Main Banner**: "Test APIs Right in Your Browser"
@@ -196,7 +213,7 @@ English
 Developers, QA Engineers, API Testers, DevOps Engineers
 
 ### Tags/Keywords (if supported)
-api, rest, testing, url, editor, developer, tools, http, headers, json, postman, alternative
+api, rest, testing, url, editor, developer, tools, http, headers, json, yaml, diff, postman, alternative
 
 ---
 
@@ -229,7 +246,31 @@ api, rest, testing, url, editor, developer, tools, http, headers, json, postman,
 
 ## Version History
 
-### v2.0 - Major Update (Current)
+### v2.5 - Current
+**New in this release:**
+- JSON Diff tool: side-by-side compare, named history, share links, export/import
+- YAML Tools: Compare Diff + Fix YAML modes (format, validate, repair, JSON→YAML)
+- Query param enable/disable toggles with per-path persistence across sessions
+- Shift+Enter opens edited URL in a new tab
+- Configurable URL history and suggestion pool limits in Settings
+- Autocomplete no longer auto-selects first suggestion — use arrow keys to choose
+- JSON Diff and YAML Diff quick-launch buttons in the top bar
+
+### v2.4
+**New in this release:**
+- 5 built-in themes (Light, Dark, Golden, Silver, Crystal)
+- Inline autocomplete for path segments and query param keys/values
+- JSON editor with format, minify, live validation, and expand mode
+- Top tab bar with keyboard shortcuts (Alt+1–4, Ctrl+1–4 on Mac)
+- Consolidated Settings tab (protocol, host, hash, and history)
+- Renamed to URL Editor Pro
+
+**Removed / changed from earlier listings:**
+- Dropdown tab selector (replaced by top tab bar)
+- Tabs sorted by usage frequency (fixed tab order now)
+- "Save and reuse API configurations" (not implemented)
+
+### v2.0 - Major Update
 **API Testing Features:**
 - All HTTP methods (GET, POST, PUT, DELETE, PATCH)
 - Custom headers management
@@ -239,10 +280,8 @@ api, rest, testing, url, editor, developer, tools, http, headers, json, postman,
 - Copy buttons for headers and body
 
 **UI Improvements:**
-- Smart tab dropdown with usage tracking
 - Combined URL Builder (paths + params)
 - Global Enter key navigation
-- Green Navigate button
 - Collapsible URL sections
 - Proper text wrapping in response viewer
 

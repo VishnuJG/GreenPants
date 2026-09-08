@@ -12,7 +12,7 @@ export async function loadCurrentUrl() {
       setCurrentUrl(tab.url);
       setUrlObj(new URL(tab.url));
       displayUrl();
-      populateFields();
+      await populateFields();
     }
   } catch (error) {
     console.error('Error loading URL:', error);
@@ -39,7 +39,7 @@ export function displayUrl() {
 }
 
 // Populate all input fields with current URL components
-export function populateFields() {
+export async function populateFields({ preserveParamDom = false } = {}) {
   const url = getUrlObj();
   
   // Protocol and Host
@@ -59,7 +59,7 @@ export function populateFields() {
   // Query parameters - only render if container exists
   const paramContainer = document.getElementById('queryParams');
   if (paramContainer) {
-    renderQueryParams();
+    await renderQueryParams({ preserveDom: preserveParamDom });
   }
   
   // Hash
@@ -67,12 +67,12 @@ export function populateFields() {
 }
 
 // Load a URL into the editor
-export function loadUrlIntoEditor(url) {
+export async function loadUrlIntoEditor(url) {
   try {
     setUrlObj(new URL(url));
     setCurrentUrl(url);
     displayUrl();
-    populateFields();
+    await populateFields();
   } catch (error) {
     console.error('Error loading URL into editor:', error);
   }
@@ -126,11 +126,16 @@ export function buildUrl() {
   const searchParams = new URLSearchParams();
   
   paramRows.forEach(row => {
+    const toggle = row.querySelector('.param-toggle');
+    if (toggle && !toggle.checked) {
+      return;
+    }
+
     const keyInput = row.querySelector('[data-type="key"]');
     const valueInput = row.querySelector('[data-type="value"]');
     const key = keyInput.value.trim();
     const value = valueInput.value.trim();
-    
+
     if (key) {
       searchParams.append(key, value);
     }
@@ -155,6 +160,14 @@ export function buildUrl() {
   return newUrl;
 }
 
+function normalizeUrl(urlString) {
+  try {
+    return new URL(urlString).href;
+  } catch {
+    return urlString.trim();
+  }
+}
+
 // Update preview
 export function updatePreview() {
   try {
@@ -172,7 +185,7 @@ export function updatePreview() {
 }
 
 // Parse URL from the editable field and update all components
-export function parseUrlFromField(event) {
+export async function parseUrlFromField(event) {
   try {
     // Get value from the field that triggered the event, or first field if no event
     const firstField = document.querySelector('.url-display');
@@ -183,13 +196,23 @@ export function parseUrlFromField(event) {
       : firstField.value.trim();
     
     if (!urlInput) return;
+
+    // Skip re-parsing when the URL field already reflects the current editor state.
+    // This keeps disabled params in the list when toggling them off updates the preview.
+    try {
+      if (normalizeUrl(urlInput) === normalizeUrl(buildUrl())) {
+        return;
+      }
+    } catch {
+      // Fall through to manual URL parsing.
+    }
     
     const parsedUrl = new URL(urlInput);
     setUrlObj(parsedUrl);
     setCurrentUrl(urlInput);
     
     // Update all fields
-    populateFields();
+    await populateFields({ preserveParamDom: true });
     
     // Sync all URL display fields
     const urlFields = document.querySelectorAll('.url-display');

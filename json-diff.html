@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSON Diff - URL Editor Pro</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --gradient-start: #2563eb;
+      --gradient-end: #1e40af;
+      --success: #16a34a;
+      --success-bg: #dcfce7;
+      --error: #dc2626;
+      --error-bg: #fee2e2;
+      --warning: #d97706;
+      --warning-bg: #fef3c7;
+      --bg-gradient-start: #f8fafc;
+      --bg-gradient-end: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --surface: #ffffff;
+      --surface-muted: #f1f5f9;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --shadow: rgba(15, 23, 42, 0.08);
+      --mono: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Menlo', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(145deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    .page {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 24px var(--shadow);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+      color: white;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-strong);
+    }
+
+    .btn-secondary:hover { background: var(--surface-muted); }
+
+    .summary {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #0f172a;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 0.2s;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .history-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px var(--shadow);
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--surface-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-header h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .history-header span {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .history-list {
+      overflow-y: auto;
+      padding: 8px;
+      flex: 1;
+    }
+
+    .history-empty {
+      padding: 16px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .history-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: var(--surface);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .history-item:hover,
+    .history-item.active {
+      border-color: var(--primary);
+      background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+    }
+
+    .history-item-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .history-item-meta {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .history-item-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .history-item-actions button {
+      border: 1px solid var(--border-strong);
+      background: var(--surface-muted);
+      border-radius: 7px;
+      padding: 3px 7px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .history-item-actions button:hover {
+      background: var(--surface);
+    }
+
+    .history-item-actions button.danger:hover {
+      color: var(--error);
+      border-color: #fecaca;
+      background: var(--error-bg);
+    }
+
+    .main-column {
+      min-width: 0;
+    }
+
+    .share-note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+      .history-panel {
+        position: static;
+        max-height: 260px;
+      }
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      min-height: 320px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--surface-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .panel-actions button {
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-secondary);
+    }
+
+    .panel-actions button:hover { background: var(--surface-muted); }
+
+    .panel textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 280px;
+      border: none;
+      resize: vertical;
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      background: var(--surface);
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .results {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+
+    .results-header {
+      padding: 10px 14px;
+      background: var(--surface-muted);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .diff-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      max-height: 520px;
+      overflow: auto;
+    }
+
+    .diff-panel {
+      border-right: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .diff-panel:last-child { border-right: none; }
+
+    .diff-line {
+      display: flex;
+      white-space: pre;
+      min-height: 1.55em;
+    }
+
+    .line-no {
+      flex: 0 0 42px;
+      text-align: right;
+      padding: 0 8px;
+      color: var(--text-muted);
+      background: var(--surface-muted);
+      border-right: 1px solid var(--border);
+      user-select: none;
+    }
+
+    .line-text {
+      flex: 1;
+      padding: 0 10px;
+      overflow-x: auto;
+    }
+
+    .diff-line.same .line-text { background: var(--surface); }
+    .diff-line.removed .line-text { background: var(--error-bg); color: #991b1b; }
+    .diff-line.added .line-text { background: var(--success-bg); color: #166534; }
+    .diff-line.changed-left .line-text { background: var(--warning-bg); color: #92400e; }
+    .diff-line.changed-right .line-text { background: #dbeafe; color: #1e40af; }
+    .diff-line.empty .line-text { background: #fafafa; }
+
+    .error-banner {
+      display: none;
+      margin-bottom: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: var(--error-bg);
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 900px) {
+      .panels, .diff-panels { grid-template-columns: 1fr; }
+      .diff-panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .summary { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1>JSON Diff</h1>
+      <p>Paste JSON on both sides and compare — like jsondiff.com</p>
+    </header>
+
+    <div class="error-banner" id="errorBanner"></div>
+
+    <div class="layout">
+      <aside class="history-panel">
+        <div class="history-header">
+          <h2>Saved Comparisons</h2>
+          <span id="historyCount">0</span>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </aside>
+
+      <div class="main-column">
+        <div class="toolbar">
+          <button class="btn btn-primary" id="compareBtn">Compare</button>
+          <button class="btn btn-secondary" id="saveBtn">Save</button>
+          <button class="btn btn-secondary" id="shareBtn">Copy Share Link</button>
+          <button class="btn btn-secondary" id="exportBtn">Export File</button>
+          <button class="btn btn-secondary" id="importBtn">Import File</button>
+          <button class="btn btn-secondary" id="swapBtn">Swap</button>
+          <button class="btn btn-secondary" id="clearBtn">Clear</button>
+          <span class="summary" id="summary">Ready</span>
+        </div>
+        <p class="share-note">Share links work for people with URL Editor Pro installed. Export a file to share with anyone.</p>
+
+        <div class="panels">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Left JSON</h2>
+          <div class="panel-actions">
+            <button type="button" data-format="left">Format</button>
+            <button type="button" data-paste="left">Paste</button>
+          </div>
+        </div>
+        <textarea id="leftInput" placeholder='{"name": "Alice", "age": 30}' spellcheck="false"></textarea>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Right JSON</h2>
+          <div class="panel-actions">
+            <button type="button" data-format="right">Format</button>
+            <button type="button" data-paste="right">Paste</button>
+          </div>
+        </div>
+        <textarea id="rightInput" placeholder='{"name": "Alice", "age": 31}' spellcheck="false"></textarea>
+      </section>
+    </div>
+
+    <section class="results" id="results" hidden>
+      <div class="results-header">Diff Result</div>
+      <div class="diff-panels">
+        <div class="diff-panel" id="leftDiff"></div>
+        <div class="diff-panel" id="rightDiff"></div>
+      </div>
+      <div class="legend">
+        <span><i class="swatch" style="background: var(--error-bg);"></i> Removed</span>
+        <span><i class="swatch" style="background: var(--success-bg);"></i> Added</span>
+        <span><i class="swatch" style="background: var(--warning-bg);"></i> Changed (left)</span>
+        <span><i class="swatch" style="background: #dbeafe;"></i> Changed (right)</span>
+      </div>
+    </section>
+      </div>
+    </div>
+
+    <input type="file" id="importFile" class="hidden-input" accept=".json,.jsondiff.json,application/json">
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script type="module" src="scripts/response-viewer-theme.js"></script>
+  <script type="module" src="scripts/json-diff.js"></script>
+</body>
+</html>

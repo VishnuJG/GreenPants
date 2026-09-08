@@ -322,6 +322,7 @@ Free to use and modify for personal and commercial projects.
 - **Issues**: Report bugs or request features via GitHub Issues
 - **Questions**: Check the documentation first
 - **Contributing**: Pull requests welcome!
+- **Donations**: If you'd like to support development, [Buy me a coffee](https://buymeacoffee.com/alexios)
 
 ## 🌟 Changelog
 

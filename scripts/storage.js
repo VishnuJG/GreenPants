@@ -1,6 +1,7 @@
 // Storage, History, and Suggestions Management
 
-import { STORAGE_KEYS, MAX_HISTORY_ITEMS, MAX_SUGGESTIONS } from './constants.js';
+import { STORAGE_KEYS } from './constants.js';
+import { getHistoryLimit, getSuggestionsLimit } from './storage-settings.js';
 import { loadUrlIntoEditor } from './url-manager.js';
 
 // Check if storage API is available
@@ -33,8 +34,9 @@ export async function saveUrlToHistory(url, type) {
     history.unshift(entry);
     
     // Limit size
-    if (history.length > MAX_HISTORY_ITEMS) {
-      history = history.slice(0, MAX_HISTORY_ITEMS);
+    const maxHistory = await getHistoryLimit();
+    if (history.length > maxHistory) {
+      history = history.slice(0, maxHistory);
     }
     
     // Save
@@ -80,6 +82,7 @@ export async function savePathsAndParams() {
     let savedPaths = result[STORAGE_KEYS.PATH_SEGMENTS] || [];
     let savedParams = result[STORAGE_KEYS.QUERY_PARAMS] || [];
     let savedParamValues = result[STORAGE_KEYS.QUERY_PARAM_VALUES] || {};
+    const maxSuggestions = await getSuggestionsLimit();
 
     paramRows.forEach(row => {
       const keyInput = row.querySelector('[data-type="key"]');
@@ -97,7 +100,7 @@ export async function savePathsAndParams() {
         }
         savedParamValues[key] = savedParamValues[key].filter(v => v !== value);
         savedParamValues[key].unshift(value);
-        savedParamValues[key] = savedParamValues[key].slice(0, MAX_SUGGESTIONS);
+        savedParamValues[key] = savedParamValues[key].slice(0, maxSuggestions);
       }
     });
     
@@ -116,8 +119,8 @@ export async function savePathsAndParams() {
     });
     
     // Limit size
-    savedPaths = savedPaths.slice(0, MAX_SUGGESTIONS);
-    savedParams = savedParams.slice(0, MAX_SUGGESTIONS);
+    savedPaths = savedPaths.slice(0, maxSuggestions);
+    savedParams = savedParams.slice(0, maxSuggestions);
     
     // Save
     await chrome.storage.local.set({
@@ -168,7 +171,12 @@ export async function loadHistory() {
       urlSpan.textContent = entry.url;
       
       const badge = document.createElement('span');
-      badge.className = `history-badge ${entry.type === 'copied' ? 'copied' : ''}`;
+      badge.className = 'history-badge';
+      if (entry.type === 'copied') {
+        badge.classList.add('copied');
+      } else if (entry.type === 'opened') {
+        badge.classList.add('opened');
+      }
       badge.textContent = entry.type;
       
       div.appendChild(urlSpan);

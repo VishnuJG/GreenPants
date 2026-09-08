@@ -16,9 +16,10 @@ export function addHeader(key = '', value = '') {
   row.innerHTML = `
     <input type="text" placeholder="Header Name (e.g., Authorization)" value="${key}" data-type="header-key">
     <input type="text" placeholder="Header Value (e.g., Bearer token...)" value="${value}" data-type="header-value">
-    <button class="btn btn-remove" onclick="window.removeHeader('${headerId}')">🗑️</button>
+    <button class="btn btn-remove">🗑️</button>
   `;
   
+  row.querySelector('.btn-remove').addEventListener('click', () => removeHeader(headerId));
   container.appendChild(row);
   
   // Focus on the first input
@@ -81,7 +82,4 @@ export function clearHeaders() {
   }
   headerCount = 0;
 }
-
-// Expose functions globally for inline onclick handlers
-window.removeHeader = removeHeader;
 

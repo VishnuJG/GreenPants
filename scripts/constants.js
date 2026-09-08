@@ -6,12 +6,21 @@ export const STORAGE_KEYS = {
   PATH_SEGMENTS: 'pathSegments',
   QUERY_PARAMS: 'queryParams',
   QUERY_PARAM_VALUES: 'queryParamValues',
-  THEME: 'selectedTheme'
+  THEME: 'selectedTheme',
+  HISTORY_LIMIT: 'historyLimit',
+  SUGGESTIONS_LIMIT: 'suggestionsLimit',
+  PARAM_EDITOR_STATE: 'paramEditorState',
+  JSON_DIFF_HISTORY: 'jsonDiffHistory',
+  YAML_DIFF_HISTORY: 'yamlDiffHistory',
 };
 
-// Maximum items to store
-export const MAX_HISTORY_ITEMS = 20;
-export const MAX_SUGGESTIONS = 30;
+// Default maximum items to store
+export const DEFAULT_HISTORY_ITEMS = 20;
+export const DEFAULT_SUGGESTIONS = 30;
+
+// Backward-compatible exports
+export const MAX_HISTORY_ITEMS = DEFAULT_HISTORY_ITEMS;
+export const MAX_SUGGESTIONS = DEFAULT_SUGGESTIONS;
 
 // Global state
 export let currentUrl = '';
