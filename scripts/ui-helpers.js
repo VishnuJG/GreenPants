@@ -192,4 +192,4 @@ export function setupCollapsibles() {
       icon.classList.toggle('collapsed');
     });
   });
-}
+} 
